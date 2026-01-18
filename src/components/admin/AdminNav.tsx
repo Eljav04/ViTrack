@@ -1,10 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, ClipboardList, Users, Calendar, Building2, User, Menu, X } from 'lucide-react';
+import { useAppSelector } from '../../store/hooks';
 import { useState } from 'react';
 
 export function AdminNav({ onLogout }: { onLogout: () => void }) {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useAppSelector((state) => state.auth);
 
   const navItems = [
     { path: '/admin', label: 'İdarə Paneli', icon: LayoutDashboard },
@@ -22,18 +24,17 @@ export function AdminNav({ onLogout }: { onLogout: () => void }) {
             <h1 className="text-xl font-semibold text-gray-900">
               Admin Paneli
             </h1>
-            
+
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-1">
               {navItems.map(item => (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                    location.pathname === item.path
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${location.pathname === item.path
                       ? 'bg-blue-50 text-blue-600 font-medium'
                       : 'text-gray-600 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   <item.icon className="w-4 h-4" />
                   <span className="text-sm">{item.label}</span>
@@ -46,18 +47,20 @@ export function AdminNav({ onLogout }: { onLogout: () => void }) {
           <div className="hidden lg:flex items-center gap-3">
             <Link
               to="/admin/profile"
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 ${
-                location.pathname === '/admin/profile' ? 'bg-blue-50' : ''
-              }`}
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 ${location.pathname === '/admin/profile' ? 'bg-blue-50' : ''
+                }`}
             >
               <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">Admin İstifadəçi</p>
-                <p className="text-xs text-gray-600">Administrator</p>
+                <p className="text-sm font-medium text-gray-900">{user?.firstname} {user?.lastname}</p>
+                <p className="text-xs text-gray-600">{user?.role === 'Admin' ? 'Administrator' : 'User'}</p>
               </div>
               <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                A
+                {user?.firstname?.[0] || 'A'}
               </div>
             </Link>
+            <button onClick={onLogout} className="text-gray-600 hover:text-red-600 text-sm px-3">
+              Çıxış
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -83,11 +86,10 @@ export function AdminNav({ onLogout }: { onLogout: () => void }) {
                 key={item.path}
                 to={item.path}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                  location.pathname === item.path
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${location.pathname === item.path
                     ? 'bg-blue-50 text-blue-600 font-medium'
                     : 'text-gray-600 hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 <item.icon className="w-5 h-5" />
                 {item.label}
@@ -96,15 +98,21 @@ export function AdminNav({ onLogout }: { onLogout: () => void }) {
             <Link
               to="/admin/profile"
               onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                location.pathname === '/admin/profile'
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${location.pathname === '/admin/profile'
                   ? 'bg-blue-50 text-blue-600 font-medium'
                   : 'text-gray-600 hover:bg-gray-50'
-              }`}
+                }`}
             >
               <User className="w-5 h-5" />
               Profil
             </Link>
+            <button
+              onClick={() => { setMobileMenuOpen(false); onLogout(); }}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-600 hover:bg-gray-50`}
+            >
+              <X className="w-5 h-5" />
+              Çıxış
+            </button>
           </nav>
         </div>
       )}
