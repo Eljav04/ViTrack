@@ -1,13 +1,52 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Edit2, X, Trash2, Building2 } from 'lucide-react';
-import { departments, employees, Department } from '../../data/mockData';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { employees } from '../../data/mockData';
 import { Button } from '../ui/button';
 import { AdminNav } from './AdminNav';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { fetchDepartments, createDepartment, updateDepartment, deleteDepartment, Department } from '../../store/departmentSlice';
+import { toast, Toaster } from 'sonner';
+
+const departmentSchema = z.object({
+  name: z.string().min(1, 'Şöbənin adı tələb olunur'),
+  description: z.string().optional(),
+});
+
+type DepartmentFormData = z.infer<typeof departmentSchema>;
 
 export function AdminDepartments({ onLogout }: { onLogout: () => void }) {
+  const dispatch = useAppDispatch();
+  const { items: departments, isLoading } = useAppSelector((state) => state.departments);
   const [showModal, setShowModal] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<DepartmentFormData>({
+    resolver: zodResolver(departmentSchema),
+  });
+
+  useEffect(() => {
+    dispatch(fetchDepartments());
+  }, [dispatch]);
+
+  // Sync form when editing
+  useEffect(() => {
+    if (editingDepartment) {
+      setValue('name', editingDepartment.name);
+      // description not in Department type from slice yet, assume it might come later or just ignore
+    } else {
+      reset();
+    }
+  }, [editingDepartment, setValue, reset]);
 
   const handleEdit = (department: Department) => {
     setEditingDepartment(department);
@@ -16,30 +55,57 @@ export function AdminDepartments({ onLogout }: { onLogout: () => void }) {
 
   const handleAdd = () => {
     setEditingDepartment(null);
+    reset();
     setShowModal(true);
   };
 
   const handleClose = () => {
     setShowModal(false);
     setEditingDepartment(null);
+    reset();
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: number) => {
     setShowDeleteConfirm(id);
   };
 
-  const confirmDelete = () => {
-    // In real app, would delete from database
-    setShowDeleteConfirm(null);
+  const confirmDelete = async () => {
+    if (showDeleteConfirm !== null) {
+      try {
+        await dispatch(deleteDepartment(showDeleteConfirm)).unwrap();
+        toast.success('Şöbə uğurla silindi');
+        setShowDeleteConfirm(null);
+      } catch (error) {
+        toast.error('Şöbəni silmək mümkün olmadı');
+      }
+    }
   };
 
-  const getEmployeeCount = (departmentId: string) => {
-    return employees.filter(e => e.departmentId === departmentId && e.active).length;
+  const onSubmit = async (data: DepartmentFormData) => {
+    try {
+      if (editingDepartment) {
+        await dispatch(updateDepartment({ id: editingDepartment.id, name: data.name })).unwrap();
+        toast.success('Şöbə uğurla yeniləndi');
+      } else {
+        await dispatch(createDepartment({ name: data.name })).unwrap();
+        toast.success('Şöbə uğurla əlavə olundu');
+      }
+      handleClose();
+    } catch (error) {
+      toast.error(editingDepartment ? 'Yeniləmək mümkün olmadı' : 'Əlavə etmək mümkün olmadı');
+    }
+  };
+
+  // Mock employee count for now, as we don't have real employees connected to real departments yet
+  const getEmployeeCount = (departmentId: number) => {
+    // Logic would need to change when we have real employee data structure
+    return 0;
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <AdminNav onLogout={onLogout} />
+      <Toaster position="top-right" richColors />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
         <div className="flex items-center justify-between mb-6">
@@ -53,11 +119,16 @@ export function AdminDepartments({ onLogout }: { onLogout: () => void }) {
           </Button>
         </div>
 
+        {/* Loading State */}
+        {isLoading && departments.length === 0 && (
+          <div className="text-center py-10">Yüklənir...</div>
+        )}
+
         {/* Department Cards */}
         <div className="grid md:grid-cols-2 gap-6">
           {departments.map(department => {
             const empCount = getEmployeeCount(department.id);
-            
+
             return (
               <div
                 key={department.id}
@@ -70,7 +141,7 @@ export function AdminDepartments({ onLogout }: { onLogout: () => void }) {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900">{department.name}</h3>
-                      <p className="text-sm text-gray-600">{empCount} işçi</p>
+                      {/* <p className="text-sm text-gray-600">{empCount} işçi</p> */}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -89,36 +160,6 @@ export function AdminDepartments({ onLogout }: { onLogout: () => void }) {
                   </div>
                 </div>
 
-                {department.description && (
-                  <p className="text-sm text-gray-600 mb-4">
-                    {department.description}
-                  </p>
-                )}
-
-                {empCount > 0 && (
-                  <div className="pt-4 border-t border-gray-200">
-                    <p className="text-xs text-gray-600 mb-2">Təyin edilmiş işçilər</p>
-                    <div className="flex -space-x-2">
-                      {employees
-                        .filter(e => e.departmentId === department.id && e.active)
-                        .slice(0, 5)
-                        .map(emp => (
-                          <img
-                            key={emp.id}
-                            src={emp.photo}
-                            alt={emp.name}
-                            title={emp.name}
-                            className="w-8 h-8 rounded-full border-2 border-white"
-                          />
-                        ))}
-                      {empCount > 5 && (
-                        <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600">
-                          +{empCount - 5}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
             );
           })}
@@ -141,35 +182,41 @@ export function AdminDepartments({ onLogout }: { onLogout: () => void }) {
               </button>
             </div>
 
-            <form className="p-6 space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Şöbənin Adı
                 </label>
                 <input
                   type="text"
-                  defaultValue={editingDepartment?.name}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  {...register('name')}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.name ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="Mühəndislik"
                 />
+                {errors.name && (
+                  <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
+                )}
               </div>
 
-              <div>
+              {/* Description field - optional, backend doesn't seem to persist it in example? 
+                   Added based on previous UI, but disabled if backend doesn't support it or mapped to name only */}
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Təsvir (İstəyə bağlı)
                 </label>
                 <textarea
-                  defaultValue={editingDepartment?.description}
+                  {...register('description')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px] resize-none"
                   placeholder="Şöbə haqqında qısa məlumat"
                 />
-              </div>
+              </div> */}
 
               <div className="flex gap-3 pt-4 border-t border-gray-200">
-                <Button variant="outline" fullWidth onClick={handleClose}>
+                <Button variant="outline" className="flex-1" onClick={handleClose} type="button">
                   Ləğv Et
                 </Button>
-                <Button variant="primary" fullWidth type="submit">
+                <Button variant="primary" className="flex-1" type="submit" disabled={isSubmitting}>
                   {editingDepartment ? 'Yenilə' : 'Əlavə Et'}
                 </Button>
               </div>
@@ -190,10 +237,10 @@ export function AdminDepartments({ onLogout }: { onLogout: () => void }) {
             </p>
 
             <div className="flex gap-3">
-              <Button variant="outline" fullWidth onClick={() => setShowDeleteConfirm(null)}>
+              <Button variant="outline" className="flex-1" onClick={() => setShowDeleteConfirm(null)}>
                 Ləğv Et
               </Button>
-              <Button variant="danger" fullWidth onClick={confirmDelete}>
+              <Button variant="danger" className="flex-1" onClick={confirmDelete}>
                 Sil
               </Button>
             </div>
