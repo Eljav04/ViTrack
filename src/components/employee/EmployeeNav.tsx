@@ -1,11 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Calendar, User, Menu, X } from 'lucide-react';
-import { currentUser } from '../../data/mockData';
+import { useAppSelector } from '../../store/hooks';
+import { currentUser } from '../../data/mockData'; // Keep for photo
 import { useState } from 'react';
 
 export function EmployeeNav({ onLogout }: { onLogout: () => void }) {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useAppSelector((state) => state.auth);
 
   const navItems = [
     { path: '/employee', label: 'Ana Səhifə', icon: Home },
@@ -23,30 +25,32 @@ export function EmployeeNav({ onLogout }: { onLogout: () => void }) {
               <h1 className="text-xl font-semibold text-gray-900">
                 Davamiyyət Sistemi
               </h1>
-              <p className="text-sm text-gray-600">Xoş gəldiniz, {currentUser.name}</p>
+              <p className="text-sm text-gray-600">Xoş gəldiniz, {user?.firstname} {user?.lastname}</p>
             </div>
-            
+
             <div className="hidden md:flex items-center gap-6">
               {navItems.map(item => (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                    location.pathname === item.path
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${location.pathname === item.path
                       ? 'bg-blue-50 text-blue-600 font-medium'
                       : 'text-gray-600 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   <item.icon className="w-4 h-4" />
                   {item.label}
                 </Link>
               ))}
+              <button onClick={onLogout} className="text-gray-600 hover:text-red-600 text-sm">
+                Çıxış
+              </button>
             </div>
 
             <div className="md:hidden">
               <img
                 src={currentUser.photo}
-                alt={currentUser.name}
+                alt={user?.firstname}
                 className="w-10 h-10 rounded-full"
               />
             </div>
@@ -61,16 +65,22 @@ export function EmployeeNav({ onLogout }: { onLogout: () => void }) {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center gap-1 py-3 px-4 flex-1 ${
-                location.pathname === item.path
+              className={`flex flex-col items-center gap-1 py-3 px-4 flex-1 ${location.pathname === item.path
                   ? 'text-blue-600'
                   : 'text-gray-600'
-              }`}
+                }`}
             >
               <item.icon className="w-6 h-6" />
               <span className="text-xs font-medium">{item.label}</span>
             </Link>
           ))}
+          <button
+            onClick={onLogout}
+            className={`flex flex-col items-center gap-1 py-3 px-4 flex-1 text-gray-600`}
+          >
+            <X className="w-6 h-6" />
+            <span className="text-xs font-medium">Çıxış</span>
+          </button>
         </div>
       </nav>
     </>
