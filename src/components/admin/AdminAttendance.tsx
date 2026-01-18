@@ -18,7 +18,7 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
 
     const empDept = getDepartmentName(employee.departmentId);
     const matchesSearch = employee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         empDept.toLowerCase().includes(searchQuery.toLowerCase());
+      empDept.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesDepartment = filterDepartment === 'all' || empDept === filterDepartment;
     const matchesStatus = filterStatus === 'all' || record.status === filterStatus;
 
@@ -306,36 +306,36 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                 selectedRecord.comment ||
                 selectedRecord.lateReason ||
                 selectedRecord.earlyLeaveReason) && (
-                <div>
-                  <h4 className="text-sm font-medium text-gray-600 mb-3">Şərhlər və Səbəblər</h4>
-                  <div className="space-y-2">
-                    {selectedRecord.lateReason && (
-                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                        <p className="text-xs text-orange-700 font-medium mb-1">Gecikmə Səbəbi</p>
-                        <p className="text-sm text-orange-900">{selectedRecord.lateReason}</p>
-                      </div>
-                    )}
-                    {selectedRecord.earlyLeaveReason && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <p className="text-xs text-blue-700 font-medium mb-1">Erkən Çıxış Səbəbi</p>
-                        <p className="text-sm text-blue-900">{selectedRecord.earlyLeaveReason}</p>
-                      </div>
-                    )}
-                    {selectedRecord.employeeComment && (
-                      <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                        <p className="text-xs text-purple-700 font-medium mb-1">İşçi Şərhi</p>
-                        <p className="text-sm text-purple-900">{selectedRecord.employeeComment}</p>
-                      </div>
-                    )}
-                    {selectedRecord.comment && (
-                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                        <p className="text-xs text-gray-700 font-medium mb-1">Əlavə Şərh</p>
-                        <p className="text-sm text-gray-900">{selectedRecord.comment}</p>
-                      </div>
-                    )}
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-600 mb-3">Şərhlər və Səbəblər</h4>
+                    <div className="space-y-2">
+                      {selectedRecord.lateReason && (
+                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                          <p className="text-xs text-orange-700 font-medium mb-1">Gecikmə Səbəbi</p>
+                          <p className="text-sm text-orange-900">{selectedRecord.lateReason}</p>
+                        </div>
+                      )}
+                      {selectedRecord.earlyLeaveReason && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <p className="text-xs text-blue-700 font-medium mb-1">Erkən Çıxış Səbəbi</p>
+                          <p className="text-sm text-blue-900">{selectedRecord.earlyLeaveReason}</p>
+                        </div>
+                      )}
+                      {selectedRecord.employeeComment && (
+                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                          <p className="text-xs text-purple-700 font-medium mb-1">İşçi Şərhi</p>
+                          <p className="text-sm text-purple-900">{selectedRecord.employeeComment}</p>
+                        </div>
+                      )}
+                      {selectedRecord.comment && (
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                          <p className="text-xs text-gray-700 font-medium mb-1">Əlavə Şərh</p>
+                          <p className="text-sm text-gray-900">{selectedRecord.comment}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* QR Approval */}
               {selectedRecord.qrApproved && (
@@ -353,3 +353,5 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
     </div>
   );
 }
+
+
