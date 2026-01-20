@@ -64,7 +64,7 @@ export function LoginPage() {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                İstifadəçi adı / Login
+                                Login
                             </label>
                             <input
                                 type="text"
@@ -106,7 +106,7 @@ export function LoginPage() {
                     </form>
 
                     <div className="mt-6 pt-6 border-t border-gray-200">
-                        <div className="text-center text-xs text-gray-100 italic">
+                        <div className="text-center text-xs text-gray-500 italic">
                             v1.0.0
                         </div>
                     </div>

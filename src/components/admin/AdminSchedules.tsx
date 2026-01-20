@@ -1,30 +1,115 @@
-import { useState } from 'react';
-import { Plus, Edit2, X, Clock } from 'lucide-react';
-import { schedules, employees, Schedule } from '../../data/mockData';
+import { useState, useEffect } from 'react';
+import { Plus, Edit2, X, Clock, Trash2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { AdminNav } from './AdminNav';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../store/store';
+import { fetchWorkSchedules, createWorkSchedule, updateWorkSchedule, deleteWorkSchedule } from '../../store/workScheduleSlice';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
+
+// Zod Schema
+const scheduleSchema = z.object({
+  name: z.string().min(1, 'Cədvəl adı mütləqdir'),
+  startTime: z.string().min(1, 'Başlama vaxtı mütləqdir'),
+  endTime: z.string().min(1, 'Bitmə vaxtı mütləqdir'),
+});
+
+type ScheduleFormValues = z.infer<typeof scheduleSchema>;
 
 export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
-  const [showModal, setShowModal] = useState(false);
-  const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
+  const dispatch = useDispatch<AppDispatch>();
+  const { items: schedules, loading } = useSelector((state: RootState) => state.workSchedules);
 
-  const handleEdit = (schedule: Schedule) => {
-    setEditingSchedule(schedule);
+  const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm<ScheduleFormValues>({
+    resolver: zodResolver(scheduleSchema),
+  });
+
+  useEffect(() => {
+    dispatch(fetchWorkSchedules());
+  }, [dispatch]);
+
+  const handleEdit = (schedule: any) => {
+    setEditingId(schedule.id);
+    setValue('name', schedule.name);
+    setValue('startTime', schedule.startTime);
+    setValue('endTime', schedule.endTime);
+    // Calculate regular hours if workHours is not retrieved or just use default
+    // For now we don't have workHours in the API response type explicitly defined in the prompt text 
+    // but the previous mockup had it. We can calculate it or leave it optional.
+    // The previous mockup had input for it.
+    // Let's assume we can compute it or it comes from API but for now we won't strictly rely on it from API if not present.
     setShowModal(true);
   };
 
   const handleAdd = () => {
-    setEditingSchedule(null);
+    setEditingId(null);
+    reset({
+      name: '',
+      startTime: '',
+      endTime: ''
+    });
     setShowModal(true);
   };
 
   const handleClose = () => {
     setShowModal(false);
-    setEditingSchedule(null);
+    setEditingId(null);
+    reset();
   };
 
-  const getEmployeeCount = (scheduleId: string) => {
-    return employees.filter(e => e.scheduleId === scheduleId && e.active).length;
+  const handleDelete = (id: number) => {
+    setShowDeleteConfirm(id);
+  };
+
+  const confirmDelete = async () => {
+    if (showDeleteConfirm !== null) {
+      try {
+        await dispatch(deleteWorkSchedule(showDeleteConfirm)).unwrap();
+        toast.success('Cədvəl uğurla silindi');
+        setShowDeleteConfirm(null);
+      } catch (error) {
+        toast.error('Xəta baş verdi: ' + error);
+      }
+    }
+  };
+
+  const onSubmit = async (data: ScheduleFormValues) => {
+    try {
+      if (editingId) {
+        await dispatch(updateWorkSchedule({ id: editingId, ...data })).unwrap();
+        toast.success('Cədvəl uğurla yeniləndi');
+      } else {
+        await dispatch(createWorkSchedule(data)).unwrap();
+        toast.success('Cədvəl uğurla yaradıldı');
+      }
+      handleClose();
+    } catch (error) {
+      toast.error('Əməliyyat zamanı xəta baş verdi');
+      console.error(error);
+    }
+  };
+
+  // Helper to calculate hours difference
+  const calculateDuration = (start: string, end: string) => {
+    if (!start || !end) return 0;
+    const [startH, startM] = start.split(':').map(Number);
+    const [endH, endM] = end.split(':').map(Number);
+    let diff = (endH * 60 + endM) - (startH * 60 + startM);
+    if (diff < 0) diff += 24 * 60;
+    return (diff / 60).toFixed(1);
   };
 
   return (
@@ -44,84 +129,74 @@ export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
         </div>
 
         {/* Schedule Cards */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {schedules.map(schedule => {
-            const empCount = getEmployeeCount(schedule.id);
-            
-            return (
-              <div
-                key={schedule.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Clock className="w-6 h-6 text-blue-600" />
+        {loading ? (
+          <p>Yüklənir...</p>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-6">
+            {schedules.map(schedule => {
+              const duration = calculateDuration(schedule.startTime, schedule.endTime);
+
+              return (
+                <div
+                  key={schedule.id}
+                  className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Clock className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{schedule.name}</h3>
+                        {/* Static employee count as per plan */}
+                        <p className="text-sm text-gray-600">0 işçi</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{schedule.name}</h3>
-                      <p className="text-sm text-gray-600">{empCount} işçi</p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(schedule)}
+                        className="p-2 hover:bg-gray-100 rounded-lg text-blue-600"
+                        title="Düzəliş et"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(schedule.id)}
+                        className="p-2 hover:bg-red-50 rounded-lg text-red-600"
+                        title="Sil"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleEdit(schedule)}
-                    className="p-2 hover:bg-gray-100 rounded-lg"
-                  >
-                    <Edit2 className="w-4 h-4 text-gray-600" />
-                  </button>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between py-2 border-t border-gray-100">
+                      <span className="text-sm text-gray-600">Başlama Vaxtı</span>
+                      <span className="text-lg font-semibold text-gray-900">
+                        {schedule.startTime}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between py-2 border-t border-gray-100">
+                      <span className="text-sm text-gray-600">Bitmə Vaxtı</span>
+                      <span className="text-lg font-semibold text-gray-900">
+                        {schedule.endTime}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between py-2 border-t border-gray-100">
+                      <span className="text-sm text-gray-600">İş Saatları</span>
+                      <span className="text-lg font-semibold text-gray-900">
+                        {duration} saat
+                      </span>
+                    </div>
+                  </div>
                 </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between py-2 border-t border-gray-100">
-                    <span className="text-sm text-gray-600">Başlama Vaxtı</span>
-                    <span className="text-lg font-semibold text-gray-900">
-                      {schedule.startTime}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between py-2 border-t border-gray-100">
-                    <span className="text-sm text-gray-600">Bitmə Vaxtı</span>
-                    <span className="text-lg font-semibold text-gray-900">
-                      {schedule.endTime}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between py-2 border-t border-gray-100">
-                    <span className="text-sm text-gray-600">İş Saatları</span>
-                    <span className="text-lg font-semibold text-gray-900">
-                      {schedule.workHours} saat
-                    </span>
-                  </div>
-                </div>
-
-                {empCount > 0 && (
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <p className="text-xs text-gray-600 mb-2">Təyin edilmiş işçilər</p>
-                    <div className="flex -space-x-2">
-                      {employees
-                        .filter(e => e.scheduleId === schedule.id && e.active)
-                        .slice(0, 5)
-                        .map(emp => (
-                          <img
-                            key={emp.id}
-                            src={emp.photo}
-                            alt={emp.name}
-                            title={emp.name}
-                            className="w-8 h-8 rounded-full border-2 border-white"
-                          />
-                        ))}
-                      {empCount > 5 && (
-                        <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600">
-                          +{empCount - 5}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Add/Edit Modal */}
@@ -130,7 +205,7 @@ export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
           <div className="bg-white rounded-xl max-w-md w-full">
             <div className="border-b border-gray-200 p-6 flex items-center justify-between">
               <h3 className="text-xl font-semibold text-gray-900">
-                {editingSchedule ? 'Cədvəli Redaktə Et' : 'Cədvəl Əlavə Et'}
+                {editingId ? 'Cədvəli Redaktə Et' : 'Cədvəl Əlavə Et'}
               </h3>
               <button
                 onClick={handleClose}
@@ -140,17 +215,20 @@ export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
               </button>
             </div>
 
-            <form className="p-6 space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Cədvəlin Adı
                 </label>
                 <input
                   type="text"
-                  defaultValue={editingSchedule?.name}
+                  {...register('name')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Standart 9-17"
                 />
+                {errors.name && (
+                  <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -160,9 +238,12 @@ export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
                   </label>
                   <input
                     type="time"
-                    defaultValue={editingSchedule?.startTime}
+                    {...register('startTime')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                  {errors.startTime && (
+                    <p className="text-red-500 text-sm mt-1">{errors.startTime.message}</p>
+                  )}
                 </div>
 
                 <div>
@@ -171,36 +252,46 @@ export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
                   </label>
                   <input
                     type="time"
-                    defaultValue={editingSchedule?.endTime}
+                    {...register('endTime')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                  {errors.endTime && (
+                    <p className="text-red-500 text-sm mt-1">{errors.endTime.message}</p>
+                  )}
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  İş Saatları
-                </label>
-                <input
-                  type="number"
-                  defaultValue={editingSchedule?.workHours}
-                  min="1"
-                  max="24"
-                  step="0.5"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="8"
-                />
-              </div>
-
               <div className="flex gap-3 pt-4 border-t border-gray-200">
-                <Button variant="outline" fullWidth onClick={handleClose}>
+                <Button variant="outline" className="flex-1" onClick={handleClose} type="button">
                   Ləğv Et
                 </Button>
-                <Button variant="primary" fullWidth type="submit">
-                  {editingSchedule ? 'Yenilə' : 'Əlavə Et'}
+                <Button variant="primary" className="flex-1" type="submit">
+                  {editingId ? 'Yenilə' : 'Əlavə Et'}
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              Cədvəli Sil
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Bu cədvəli silmək istədiyinizə əminsiniz? Bu əməliyyat geri qaytarıla bilməz.
+            </p>
+
+            <div className="flex gap-3">
+              <Button variant="outline" className="flex-1" onClick={() => setShowDeleteConfirm(null)}>
+                Ləğv Et
+              </Button>
+              <Button variant="danger" className="flex-1" onClick={confirmDelete}>
+                Sil
+              </Button>
+            </div>
           </div>
         </div>
       )}

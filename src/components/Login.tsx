@@ -1,24 +1,59 @@
-import { useState } from 'react';
 import { UserRole } from '../App';
 import { Users, UserCog } from 'lucide-react';
 import { Button } from './ui/button';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
 
 interface LoginProps {
   onLogin: (role: UserRole) => void;
 }
 
-export function Login({ onLogin }: LoginProps) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const loginSchema = z.object({
+  email: z.string().email('Düzgün e-poçt ünvanı daxil edin').min(1, 'E-poçt mütləqdir'),
+  password: z.string().min(1, 'Şifrə mütləqdir'),
+});
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+type LoginFormValues = z.infer<typeof loginSchema>;
+
+export function Login({ onLogin }: LoginProps) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = (data: LoginFormValues) => {
     // Simple demo logic - in real app, validate credentials
-    if (email.includes('admin')) {
+    if (data.email.includes('admin')) {
       onLogin('admin');
-    } else {
+      toast.success('Admin kimi daxil oldunuz');
+    } else if (data.email.includes('isci') || data.email.includes('employee')) {
+      // Added 'isci' or 'employee' check just to match standard demo behavior if needed, 
+      // but originally it was just else handling everything else as employee.
+      // Reverting to original logic: if includes admin -> admin, else -> employee.
+      // actually let's stick to the original logic:
+      // if (email.includes('admin')) { onLogin('admin'); } else { onLogin('employee'); }
       onLogin('employee');
+      toast.success('İşçi kimi daxil oldunuz');
+    } else {
+      // Only for demonstration, maybe show error if strictly checking?
+      // But original code allowed anything non-admin to be employee.
+      // Let's keep it consistent with original logic but maybe add a check?
+      // Original: if (email.includes('admin')) ... else ...
+      onLogin('employee');
+      toast.success('İşçi kimi daxil oldunuz');
     }
+  };
+
+  const handleDemoLogin = (role: UserRole) => {
+    setValue('email', role === 'admin' ? 'admin@sirket.com' : 'employee@sirket.com');
+    setValue('password', '123456');
+    handleSubmit(onSubmit)();
   };
 
   return (
@@ -30,21 +65,22 @@ export function Login({ onLogin }: LoginProps) {
           </h1>
           <p className="text-gray-600">Daxil olmaq üçün məlumatlarınızı daxil edin</p>
         </div>
-        
+
         <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 E-poçt
               </label>
               <input
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                {...register('email')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="email@sirket.com"
-                required
               />
+              {errors.email && (
+                <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+              )}
             </div>
 
             <div>
@@ -53,12 +89,13 @@ export function Login({ onLogin }: LoginProps) {
               </label>
               <input
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                {...register('password')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="••••••••"
-                required
               />
+              {errors.password && (
+                <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+              )}
             </div>
 
             <Button variant="primary" size="lg" fullWidth type="submit">
@@ -66,18 +103,18 @@ export function Login({ onLogin }: LoginProps) {
             </Button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-gray-200">
+          <div className="mt-6 pt-6 border-t border-gray-200 ">
             <p className="text-xs text-gray-600 text-center mb-3">Demo üçün:</p>
             <div className="grid grid-cols-2 gap-3">
               <button
-                onClick={() => onLogin('employee')}
+                onClick={() => handleDemoLogin('employee')}
                 className="text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center gap-2 p-2 border border-gray-200 rounded-lg hover:bg-gray-50"
               >
                 <Users className="w-4 h-4" />
                 İşçi kimi
               </button>
               <button
-                onClick={() => onLogin('admin')}
+                onClick={() => handleDemoLogin('admin')}
                 className="text-sm text-purple-600 hover:text-purple-700 flex items-center justify-center gap-2 p-2 border border-gray-200 rounded-lg hover:bg-gray-50"
               >
                 <UserCog className="w-4 h-4" />
