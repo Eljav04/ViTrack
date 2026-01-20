@@ -19,6 +19,8 @@ import { AdminProfile } from './components/admin/AdminProfile';
 
 export type UserRole = 'employee' | 'admin' | null;
 
+import { Toaster } from 'sonner';
+
 export default function App() {
   const dispatch = useAppDispatch();
   const { isCheckingAuth } = useAppSelector((state) => state.auth);
@@ -36,72 +38,75 @@ export default function App() {
   }
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
+    <>
+      <Toaster position="top-right" richColors />
+      <Router>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
 
-        {/* Employee Routes */}
-        <Route path="/employee" element={
-          <ProtectedRoute allowedRoles={['User']}>
-            <EmployeeDashboard onLogout={handleLogout} />
-          </ProtectedRoute>
-        } />
-        <Route path="/employee/check-in" element={
-          <ProtectedRoute allowedRoles={['User']}>
-            <CheckInOut type="in" />
-          </ProtectedRoute>
-        } />
-        <Route path="/employee/check-out" element={
-          <ProtectedRoute allowedRoles={['User']}>
-            <CheckInOut type="out" />
-          </ProtectedRoute>
-        } />
-        <Route path="/employee/history" element={
-          <ProtectedRoute allowedRoles={['User']}>
-            <EmployeeHistory />
-          </ProtectedRoute>
-        } />
-        <Route path="/employee/profile" element={
-          <ProtectedRoute allowedRoles={['User']}>
-            <EmployeeProfile onLogout={handleLogout} />
-          </ProtectedRoute>
-        } />
+          {/* Employee Routes */}
+          <Route path="/employee" element={
+            <ProtectedRoute allowedRoles={['User']}>
+              <EmployeeDashboard onLogout={handleLogout} />
+            </ProtectedRoute>
+          } />
+          <Route path="/employee/check-in" element={
+            <ProtectedRoute allowedRoles={['User']}>
+              <CheckInOut type="in" />
+            </ProtectedRoute>
+          } />
+          <Route path="/employee/check-out" element={
+            <ProtectedRoute allowedRoles={['User']}>
+              <CheckInOut type="out" />
+            </ProtectedRoute>
+          } />
+          <Route path="/employee/history" element={
+            <ProtectedRoute allowedRoles={['User']}>
+              <EmployeeHistory />
+            </ProtectedRoute>
+          } />
+          <Route path="/employee/profile" element={
+            <ProtectedRoute allowedRoles={['User']}>
+              <EmployeeProfile onLogout={handleLogout} />
+            </ProtectedRoute>
+          } />
 
-        {/* Admin Routes */}
-        <Route path="/admin" element={
-          <ProtectedRoute allowedRoles={['Admin']}>
-            <AdminDashboard onLogout={handleLogout} />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/attendance" element={
-          <ProtectedRoute allowedRoles={['Admin']}>
-            <AdminAttendance onLogout={handleLogout} />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/employees" element={
-          <ProtectedRoute allowedRoles={['Admin']}>
-            <AdminEmployees onLogout={handleLogout} />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/schedules" element={
-          <ProtectedRoute allowedRoles={['Admin']}>
-            <AdminSchedules onLogout={handleLogout} />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/departments" element={
-          <ProtectedRoute allowedRoles={['Admin']}>
-            <AdminDepartments onLogout={handleLogout} />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/profile" element={
-          <ProtectedRoute allowedRoles={['Admin']}>
-            <AdminProfile onLogout={handleLogout} />
-          </ProtectedRoute>
-        } />
+          {/* Admin Routes */}
+          <Route path="/admin" element={
+            <ProtectedRoute allowedRoles={['Admin']}>
+              <AdminDashboard onLogout={handleLogout} />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/attendance" element={
+            <ProtectedRoute allowedRoles={['Admin']}>
+              <AdminAttendance onLogout={handleLogout} />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/employees" element={
+            <ProtectedRoute allowedRoles={['Admin']}>
+              <AdminEmployees onLogout={handleLogout} />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/schedules" element={
+            <ProtectedRoute allowedRoles={['Admin']}>
+              <AdminSchedules onLogout={handleLogout} />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/departments" element={
+            <ProtectedRoute allowedRoles={['Admin']}>
+              <AdminDepartments onLogout={handleLogout} />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/profile" element={
+            <ProtectedRoute allowedRoles={['Admin']}>
+              <AdminProfile onLogout={handleLogout} />
+            </ProtectedRoute>
+          } />
 
-        {/* Default Redirect */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </Router>
+          {/* Default Redirect */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </Router>
+    </>
   );
 }

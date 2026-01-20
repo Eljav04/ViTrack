@@ -6,10 +6,15 @@ export interface User {
     lastname: string; // Backend uses 'Surname' in DTO, mapped to lastname
     login: string; // username/email
     role: string;
-    department?: string; // from all-detailed
-    position?: string; // from all-detailed
-    startTime?: string; // from all-detailed
-    endTime?: string; // from all-detailed
+    department?: {
+        id: number;
+        name: string;
+    } | null;
+    workSchedule?: {
+        id: number;
+        name: string;
+    } | null;
+    position?: string;
     isDeleted?: boolean;
 }
 
@@ -19,6 +24,15 @@ export interface CreateUserDTO {
     lastname: string;
     password: string;
     role: 'User' | 'Admin';
+}
+
+export interface UpdateUserDTO {
+    id: string;
+    firstname: string;
+    lastname: string;
+    login: string;
+    departmentId?: number | null;
+    workScheduleId?: number | null;
 }
 
 export const userService = {
@@ -45,6 +59,18 @@ export const userService = {
 
     delete: async (id: string) => {
         const response = await api.delete(`/api/user/delete/${id}`);
+        return response.data;
+    },
+
+    update: async (data: UpdateUserDTO) => {
+        const response = await api.put('/api/user/update', data);
+        return response.data;
+    },
+
+    changePassword: async (id: string, newPassword: string) => {
+        const response = await api.put(`/api/user/change-password/${id}`, JSON.stringify(newPassword), {
+            headers: { 'Content-Type': 'application/json' }
+        });
         return response.data;
     }
 };
