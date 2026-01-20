@@ -10,7 +10,7 @@ import { Toaster, toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
 const loginSchema = z.object({
-    login: z.string().min(1, 'İstifadəçi adı tələb olunur'),
+    login: z.string().min(5, 'Login ən azı 5 simvol olmalıdır'),
     password: z.string().min(1, 'Şifrə tələb olunur'),
 });
 
