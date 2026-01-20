@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, X, Clock, Trash2 } from 'lucide-react';
+import { Plus, Edit2, X, Clock, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { AdminNav } from './AdminNav';
 import { useDispatch, useSelector } from 'react-redux';
@@ -36,6 +36,9 @@ export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
   } = useForm<ScheduleFormValues>({
     resolver: zodResolver(scheduleSchema),
   });
+
+  // Local loading state for form submission since Redux loading might be global/table related
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     dispatch(fetchWorkSchedules());
@@ -87,6 +90,7 @@ export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
   };
 
   const onSubmit = async (data: ScheduleFormValues) => {
+    setIsSubmitting(true);
     try {
       if (editingId) {
         await dispatch(updateWorkSchedule({ id: editingId, ...data })).unwrap();
@@ -99,6 +103,8 @@ export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
     } catch (error) {
       toast.error('Əməliyyat zamanı xəta baş verdi');
       console.error(error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -265,8 +271,15 @@ export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
                 <Button variant="outline" className="flex-1" onClick={handleClose} type="button">
                   Ləğv Et
                 </Button>
-                <Button variant="primary" className="flex-1" type="submit">
-                  {editingId ? 'Yenilə' : 'Əlavə Et'}
+                <Button variant="primary" className="flex-1" type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Gözləyin...
+                    </>
+                  ) : (
+                    editingId ? 'Yenilə' : 'Əlavə Et'
+                  )}
                 </Button>
               </div>
             </form>

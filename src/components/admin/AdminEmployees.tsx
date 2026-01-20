@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, Edit2, X, Trash2 } from 'lucide-react';
+import { Search, Plus, Edit2, X, Trash2, Loader2 } from 'lucide-react';
 import { employees } from '../../data/mockData'; // Keeping for fallback or types if needed? No, should replace.
 import { Button } from '../ui/button';
 import { AdminNav } from './AdminNav';
@@ -42,7 +42,7 @@ export function AdminEmployees({ onLogout }: { onLogout: () => void }) {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
     defaultValues: {
@@ -290,8 +290,15 @@ export function AdminEmployees({ onLogout }: { onLogout: () => void }) {
                 <Button variant="outline" className="flex-1" onClick={handleClose} type="button">
                   Ləğv Et
                 </Button>
-                <Button variant="primary" className="flex-1" type="submit">
-                  Əlavə Et
+                <Button variant="primary" className="flex-1" type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Gözləyin...
+                    </>
+                  ) : (
+                    'Əlavə Et'
+                  )}
                 </Button>
               </div>
             </form>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, X, Trash2, Building2 } from 'lucide-react';
+import { Plus, Edit2, X, Trash2, Building2, Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -217,7 +217,14 @@ export function AdminDepartments({ onLogout }: { onLogout: () => void }) {
                   Ləğv Et
                 </Button>
                 <Button variant="primary" className="flex-1" type="submit" disabled={isSubmitting}>
-                  {editingDepartment ? 'Yenilə' : 'Əlavə Et'}
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Gözləyin...
+                    </>
+                  ) : (
+                    editingDepartment ? 'Yenilə' : 'Əlavə Et'
+                  )}
                 </Button>
               </div>
             </form>
