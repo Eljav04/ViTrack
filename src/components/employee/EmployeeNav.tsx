@@ -3,6 +3,7 @@ import { Home, Calendar, User, Menu, X } from 'lucide-react';
 import { useAppSelector } from '../../store/hooks';
 import { currentUser } from '../../data/mockData'; // Keep for photo
 import { useState } from 'react';
+import logo from '../../assets/img/logo.png';
 
 export function EmployeeNav({ onLogout }: { onLogout: () => void }) {
   const location = useLocation();
@@ -20,12 +21,11 @@ export function EmployeeNav({ onLogout }: { onLogout: () => void }) {
       {/* Desktop Header */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">
-                Davamiyyət Sistemi
-              </h1>
-              <p className="text-sm text-gray-600">Xoş gəldiniz, {user?.firstname} {user?.lastname}</p>
+            <div className="flex items-center justify-center">
+              <img src={logo} alt="Logo" className="w-12 h-12 mx-auto" />
+              <h1 className="text-xl font-bold text-blue-900">ViTrack</h1>
             </div>
 
             <div className="hidden md:flex items-center gap-6">
@@ -34,8 +34,8 @@ export function EmployeeNav({ onLogout }: { onLogout: () => void }) {
                   key={item.path}
                   to={item.path}
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${location.pathname === item.path
-                      ? 'bg-blue-50 text-blue-600 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
+                    ? 'bg-blue-50 text-blue-600 font-medium'
+                    : 'text-gray-600 hover:bg-gray-50'
                     }`}
                 >
                   <item.icon className="w-4 h-4" />
@@ -66,8 +66,8 @@ export function EmployeeNav({ onLogout }: { onLogout: () => void }) {
               key={item.path}
               to={item.path}
               className={`flex flex-col items-center gap-1 py-3 px-4 flex-1 ${location.pathname === item.path
-                  ? 'text-blue-600'
-                  : 'text-gray-600'
+                ? 'text-blue-600'
+                : 'text-gray-600'
                 }`}
             >
               <item.icon className="w-6 h-6" />
