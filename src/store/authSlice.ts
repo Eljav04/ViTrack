@@ -11,6 +11,7 @@ interface AuthState {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
+    isCheckingAuth: boolean;
     error: string | null;
 }
 
@@ -18,6 +19,7 @@ const initialState: AuthState = {
     user: null,
     isAuthenticated: false,
     isLoading: false,
+    isCheckingAuth: true, // Start as true to avoid flicker on initial check
     error: null,
 };
 
@@ -34,7 +36,7 @@ export const login = createAsyncThunk(
             const response = await api.get('/api/user/me');
             return response.data;
         } catch (error: any) {
-            return rejectWithValue(error.response?.data || 'Login failed');
+            return rejectWithValue(error.response?.data || error.message || 'Login failed');
         }
     }
 );
@@ -79,15 +81,15 @@ const authSlice = createSlice({
             })
             // Check Auth
             .addCase(checkAuth.pending, (state) => {
-                state.isLoading = true;
+                state.isCheckingAuth = true;
             })
             .addCase(checkAuth.fulfilled, (state, action: PayloadAction<User>) => {
-                state.isLoading = false;
+                state.isCheckingAuth = false;
                 state.isAuthenticated = true;
                 state.user = action.payload;
             })
             .addCase(checkAuth.rejected, (state) => {
-                state.isLoading = false;
+                state.isCheckingAuth = false;
                 state.isAuthenticated = false;
                 state.user = null;
             });

@@ -1,39 +1,104 @@
-import { useState } from 'react';
-import { Search, Plus, Edit2, X } from 'lucide-react';
-import { employees, schedules, Employee, getDepartmentName, departments } from '../../data/mockData';
+import { useState, useEffect } from 'react';
+import { Search, Plus, Edit2, X, Trash2 } from 'lucide-react';
+import { employees } from '../../data/mockData'; // Keeping for fallback or types if needed? No, should replace.
 import { Button } from '../ui/button';
 import { AdminNav } from './AdminNav';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { fetchUsers, createUser, deleteUser } from '../../store/userSlice';
+import { User, CreateUserDTO } from '../../services/userService';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { toast } from 'sonner';
+
+// Zod schema for User creation (Registr)
+const azLettersRegex = /^[A-Za-zА-Яа-яЁёÇçƏəÖöŞşÜüİIıĞğ]+$/;
+
+const userSchema = z.object({
+  firstname: z.string()
+    .min(1, 'Ad mütləqdir')
+    .regex(azLettersRegex, 'Ad yalnız hərflərdən ibarət olmalıdır'),
+  lastname: z.string()
+    .min(1, 'Soyad mütləqdir')
+    .regex(azLettersRegex, 'Soyad yalnız hərflərdən ibarət olmalıdır'),
+  login: z.string()
+    .min(5, 'Login ən azı 5 simvol olmalıdır')
+    .max(100, 'Login ən çox 100 simvol ola bilər'),
+  password: z.string().min(4, 'Şifrə ən azı 4 simvol olmalıdır'),
+  role: z.enum(['User', 'Admin']),
+});
+
+type UserFormValues = z.infer<typeof userSchema>;
 
 export function AdminEmployees({ onLogout }: { onLogout: () => void }) {
+  const dispatch = useAppDispatch();
+  const { items: users, loading } = useAppSelector(state => state.users);
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterDepartment, setFilterDepartment] = useState<string>('all');
   const [showModal, setShowModal] = useState(false);
-  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
-  const departmentOptions = ['all', ...departments.map(d => d.name)];
-
-  const filteredEmployees = employees.filter(emp => {
-    const matchesSearch = emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         emp.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const empDept = getDepartmentName(emp.departmentId);
-    const matchesDepartment = filterDepartment === 'all' || empDept === filterDepartment;
-    return matchesSearch && matchesDepartment;
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<UserFormValues>({
+    resolver: zodResolver(userSchema),
+    defaultValues: {
+      role: 'User'
+    }
   });
 
-  const handleEdit = (employee: Employee) => {
-    setEditingEmployee(employee);
-    setShowModal(true);
-  };
+  useEffect(() => {
+    dispatch(fetchUsers());
+  }, [dispatch]);
+
+  const filteredUsers = users.filter(user => user.firstname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.lastname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (user.login && user.login.toLowerCase().includes(searchQuery.toLowerCase())));
 
   const handleAdd = () => {
-    setEditingEmployee(null);
+    reset();
     setShowModal(true);
   };
 
   const handleClose = () => {
     setShowModal(false);
-    setEditingEmployee(null);
+    reset();
   };
+
+  const handleDelete = (id: string) => {
+    setShowDeleteConfirm(id);
+  };
+
+  const confirmDelete = async () => {
+    if (showDeleteConfirm) {
+      try {
+        await dispatch(deleteUser(showDeleteConfirm)).unwrap();
+        toast.success('İstifadəçi uğurla silindi');
+        setShowDeleteConfirm(null);
+      } catch (error) {
+        toast.error('Silinmə zamanı xəta baş verdi');
+      }
+    }
+  };
+
+  const onSubmit = async (data: UserFormValues) => {
+    try {
+      await dispatch(createUser(data)).unwrap();
+      toast.success('İstifadəçi uğurla yaradıldı');
+      handleClose();
+    } catch (error: any) {
+      toast.error(typeof error === 'string' ? error : 'Yaradılma zamanı xəta baş verdi');
+    }
+  };
+
+
+
+
+
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -43,7 +108,7 @@ export function AdminEmployees({ onLogout }: { onLogout: () => void }) {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-semibold text-gray-900">İşçilərin İdarə Edilməsi</h2>
-            <p className="text-sm text-gray-600 mt-1">{filteredEmployees.length} işçi</p>
+            <p className="text-sm text-gray-600 mt-1">{filteredUsers.length} işçi</p>
           </div>
           <Button variant="primary" onClick={handleAdd}>
             <Plus className="w-4 h-4 mr-2" />
@@ -53,31 +118,15 @@ export function AdminEmployees({ onLogout }: { onLogout: () => void }) {
 
         {/* Filters */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Ad və ya e-poçt üzrə axtar..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <select
-                value={filterDepartment}
-                onChange={(e) => setFilterDepartment(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {departmentOptions.map(dept => (
-                  <option key={dept} value={dept}>
-                    {dept === 'all' ? 'Bütün Şöbələr' : dept}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Ad, Soyad və ya login üzrə axtar..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
         </div>
 
@@ -108,61 +157,52 @@ export function AdminEmployees({ onLogout }: { onLogout: () => void }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredEmployees.map(emp => {
-                  const schedule = schedules.find(s => s.id === emp.scheduleId);
-                  
-                  return (
-                    <tr key={emp.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={emp.photo}
-                            alt={emp.name}
-                            className="w-10 h-10 rounded-full"
-                          />
-                          <div>
-                            <p className="font-medium text-gray-900">{emp.name}</p>
-                            <p className="text-sm text-gray-600">{emp.email}</p>
-                          </div>
+                {filteredUsers.map(user => (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                          {user.firstname[0]}{user.lastname[0]}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900">{getDepartmentName(emp.departmentId)}</span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900">{emp.position}</span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{schedule?.name}</p>
-                          <p className="text-xs text-gray-600">
-                            {schedule?.startTime} - {schedule?.endTime}
-                          </p>
+                          <p className="font-medium text-gray-900">{user.firstname} {user.lastname}</p>
+                          <p className="text-sm text-gray-600">{user.login}</p>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            emp.active
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-gray-100 text-gray-800'
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-gray-900">{user.department || '-'}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-gray-900">{user.position || '-'}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <p className="text-sm text-gray-900">{user.startTime && user.endTime ? `${user.startTime} - ${user.endTime}` : '-'}</p>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {/* Status currently relying on isDeleted if detailed not available in create response but list has it */}
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${!user.isDeleted
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
                           }`}
-                        >
-                          {emp.active ? 'Aktiv' : 'Deaktiv'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => handleEdit(emp)}
-                          className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                          Redaktə Et
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                      >
+                        {!user.isDeleted ? 'Aktiv' : 'Silinib'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={() => handleDelete(user.id)}
+                        className="text-red-600 hover:text-red-800 text-sm font-medium flex items-center gap-1"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Sil
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -175,7 +215,7 @@ export function AdminEmployees({ onLogout }: { onLogout: () => void }) {
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
               <h3 className="text-xl font-semibold text-gray-900">
-                {editingEmployee ? 'İşçini Redaktə Et' : 'İşçi Əlavə Et'}
+                İşçi Əlavə Et
               </h3>
               <button
                 onClick={handleClose}
@@ -185,105 +225,104 @@ export function AdminEmployees({ onLogout }: { onLogout: () => void }) {
               </button>
             </div>
 
-            <form className="p-6 space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tam Ad
+                    Ad
                   </label>
                   <input
                     type="text"
-                    defaultValue={editingEmployee?.name}
+                    {...register('firstname')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Adı Soyadı"
+                    placeholder="Ad"
                   />
+                  {errors.firstname && <p className="text-red-500 text-xs mt-1">{errors.firstname.message}</p>}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    E-poçt
-                  </label>
-                  <input
-                    type="email"
-                    defaultValue={editingEmployee?.email}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="email@sirket.com"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Şöbə
-                  </label>
-                  <select
-                    defaultValue={editingEmployee?.departmentId}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Şöbə Seçin</option>
-                    {departments.map(dept => (
-                      <option key={dept.id} value={dept.id}>{dept.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Vəzifə
+                    Soyad
                   </label>
                   <input
                     type="text"
-                    defaultValue={editingEmployee?.position}
+                    {...register('lastname')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Baş Developer"
+                    placeholder="Soyad"
                   />
+                  {errors.lastname && <p className="text-red-500 text-xs mt-1">{errors.lastname.message}</p>}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    İş Cədvəli
-                  </label>
-                  <select
-                    defaultValue={editingEmployee?.scheduleId}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {schedules.map(schedule => (
-                      <option key={schedule.id} value={schedule.id}>
-                        {schedule.name} ({schedule.startTime} - {schedule.endTime})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Login
+                </label>
+                <input
+                  type="text"
+                  {...register('login')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Login daxil edin"
+                />
+                {errors.login && <p className="text-red-500 text-xs mt-1">{errors.login.message}</p>}
+              </div>
 
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Status
+                    Şifrə
                   </label>
-                  <select
-                    defaultValue={editingEmployee?.active ? 'active' : 'inactive'}
+                  <input
+                    type="password"
+                    {...register('password')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="active">Aktiv</option>
-                    <option value="inactive">Deaktiv</option>
-                  </select>
+                    placeholder="••••••"
+                  />
+                  {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
                 </div>
+              </div>
+
+              <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200 text-xs text-yellow-800">
+                Qeyd: Şöbə, Vəzifə və İş Cədvəli yaradıldıqdan sonra təyin olunmalıdır.
               </div>
 
               <div className="flex gap-3 pt-4 border-t border-gray-200">
-                <Button variant="outline" fullWidth onClick={handleClose}>
+                <Button variant="outline" className="flex-1" onClick={handleClose} type="button">
                   Ləğv Et
                 </Button>
-                <Button variant="primary" fullWidth type="submit">
-                  {editingEmployee ? 'Yenilə' : 'Əlavə Et'}
+                <Button variant="primary" className="flex-1" type="submit">
+                  Əlavə Et
                 </Button>
               </div>
             </form>
           </div>
         </div>
       )}
-    </div>
+
+      {/* Delete Confirmation Modal */}
+      {
+        showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl max-w-md w-full p-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                İstifadəçini Sil
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Bu istifadəçini silmək istədiyinizə əminsiniz? Bu əməliyyat geri qaytarıla bilməz.
+              </p>
+
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex-1" onClick={() => setShowDeleteConfirm(null)}>
+                  Ləğv Et
+                </Button>
+                <Button variant="danger" className="flex-1" onClick={confirmDelete}>
+                  Sil
+                </Button>
+              </div>
+            </div>
+          </div>
+        )
+      }
+    </div >
   );
 }
