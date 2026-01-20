@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, ClipboardList, Users, Calendar, Building2, User, Menu, X } from 'lucide-react';
 import { useAppSelector } from '../../store/hooks';
 import { useState } from 'react';
+import logo from '../../assets/img/logo.png';
 
 export function AdminNav({ onLogout }: { onLogout: () => void }) {
   const location = useLocation();
@@ -21,9 +22,10 @@ export function AdminNav({ onLogout }: { onLogout: () => void }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-4">
-            <h1 className="text-xl font-semibold text-gray-900">
-              Admin Paneli
-            </h1>
+            <div className="flex items-center justify-center">
+              <img src={logo} alt="Logo" className="w-12 h-12 mx-auto" />
+              <h1 className="text-xl font-bold text-blue-900">ViTrack</h1>
+            </div>
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-1">
@@ -32,8 +34,8 @@ export function AdminNav({ onLogout }: { onLogout: () => void }) {
                   key={item.path}
                   to={item.path}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${location.pathname === item.path
-                      ? 'bg-blue-50 text-blue-600 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
+                    ? 'bg-blue-50 text-blue-600 font-medium'
+                    : 'text-gray-600 hover:bg-gray-50'
                     }`}
                 >
                   <item.icon className="w-4 h-4" />
@@ -87,8 +89,8 @@ export function AdminNav({ onLogout }: { onLogout: () => void }) {
                 to={item.path}
                 onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${location.pathname === item.path
-                    ? 'bg-blue-50 text-blue-600 font-medium'
-                    : 'text-gray-600 hover:bg-gray-50'
+                  ? 'bg-blue-50 text-blue-600 font-medium'
+                  : 'text-gray-600 hover:bg-gray-50'
                   }`}
               >
                 <item.icon className="w-5 h-5" />
@@ -99,8 +101,8 @@ export function AdminNav({ onLogout }: { onLogout: () => void }) {
               to="/admin/profile"
               onClick={() => setMobileMenuOpen(false)}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${location.pathname === '/admin/profile'
-                  ? 'bg-blue-50 text-blue-600 font-medium'
-                  : 'text-gray-600 hover:bg-gray-50'
+                ? 'bg-blue-50 text-blue-600 font-medium'
+                : 'text-gray-600 hover:bg-gray-50'
                 }`}
             >
               <User className="w-5 h-5" />

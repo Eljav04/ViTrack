@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { userService, User, CreateUserDTO } from '../services/userService';
+import { userService, User, CreateUserDTO, UpdateUserDTO } from '../services/userService';
 
 interface UserState {
     items: User[];
@@ -55,6 +55,31 @@ export const deleteUser = createAsyncThunk(
     }
 );
 
+export const updateUser = createAsyncThunk(
+    'users/updateUser',
+    async (data: UpdateUserDTO, { rejectWithValue, dispatch }) => {
+        try {
+            await userService.update(data);
+            dispatch(fetchUsers());
+            return;
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to update user');
+        }
+    }
+);
+
+export const changePassword = createAsyncThunk(
+    'users/changePassword',
+    async ({ id, newPassword }: { id: string, newPassword: string }, { rejectWithValue }) => {
+        try {
+            await userService.changePassword(id, newPassword);
+            return;
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to change password');
+        }
+    }
+);
+
 const userSlice = createSlice({
     name: 'users',
     initialState,
@@ -97,6 +122,30 @@ const userSlice = createSlice({
                 state.items = state.items.filter(item => item.id !== action.payload);
             })
             .addCase(deleteUser.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            // Update
+            .addCase(updateUser.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateUser.fulfilled, (state) => {
+                state.loading = false;
+            })
+            .addCase(updateUser.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            // Change Password
+            .addCase(changePassword.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(changePassword.fulfilled, (state) => {
+                state.loading = false;
+            })
+            .addCase(changePassword.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
             });
