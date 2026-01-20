@@ -1,10 +1,13 @@
 import { UserRole } from '../App';
-import { Users, UserCog } from 'lucide-react';
+import { Users, UserCog, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { login } from '../store/authSlice';
+import { useNavigate } from 'react-router-dom';
 
 interface LoginProps {
   onLogin: (role: UserRole) => void;
@@ -18,6 +21,10 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function Login({ onLogin }: LoginProps) {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { isLoading } = useAppSelector((state) => state.auth);
+
   const {
     register,
     handleSubmit,
@@ -27,26 +34,38 @@ export function Login({ onLogin }: LoginProps) {
     resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit = (data: LoginFormValues) => {
-    // Simple demo logic - in real app, validate credentials
-    if (data.email.includes('admin')) {
-      onLogin('admin');
-      toast.success('Admin kimi daxil oldunuz');
-    } else if (data.email.includes('isci') || data.email.includes('employee')) {
-      // Added 'isci' or 'employee' check just to match standard demo behavior if needed, 
-      // but originally it was just else handling everything else as employee.
-      // Reverting to original logic: if includes admin -> admin, else -> employee.
-      // actually let's stick to the original logic:
-      // if (email.includes('admin')) { onLogin('admin'); } else { onLogin('employee'); }
-      onLogin('employee');
-      toast.success('İşçi kimi daxil oldunuz');
-    } else {
-      // Only for demonstration, maybe show error if strictly checking?
-      // But original code allowed anything non-admin to be employee.
-      // Let's keep it consistent with original logic but maybe add a check?
-      // Original: if (email.includes('admin')) ... else ...
-      onLogin('employee');
-      toast.success('İşçi kimi daxil oldunuz');
+  const onSubmit = async (data: LoginFormValues) => {
+    try {
+      const resultAction = await dispatch(login({ login: data.email, password: data.password }));
+
+      if (login.fulfilled.match(resultAction)) {
+        const user = resultAction.payload;
+        // Map backend role to frontend role (assuming basic mapping or just passing through)
+        // If backend returns 'Admin', use 'admin', else 'employee'
+        const role = user.role === 'Admin' ? 'admin' : 'employee';
+        onLogin(role);
+        toast.success(role === 'admin' ? 'Admin kimi daxil oldunuz' : 'İşçi kimi daxil oldunuz');
+      } else {
+        const error: any = resultAction.payload;
+
+        // Handle specific error codes if available in error object
+        if (error?.errorCodeSetter === 1002) { // INPUT_ERROR
+          toast.error('Daxil edilən məlumatlar yanlışdır.');
+        } else if (error?.errorCodeSetter === 1003) { // LOGIN_PASSWORD_ERROR
+          toast.error('İstifadəçi adı və ya şifrə yanlışdır.');
+        } else if (error?.errorCodeSetter === 1004) { // LOCKED_OUT_ERROR
+          toast.error('Hesabınız bloklanıb. Zəhmət olmasa adminlə əlaqə saxlayın.');
+        } else {
+          // Check for server not responding or other errors
+          if (typeof error === 'string' && error.includes('Network Error')) {
+            toast.error('Server cavab vermir. Zəhmət olmasa internet bağlantınızı yoxlayın və ya bir az sonra cəhd edin.');
+          } else {
+            toast.error('Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.');
+          }
+        }
+      }
+    } catch (err) {
+      toast.error('Gözlənilməz xəta baş verdi.');
     }
   };
 
@@ -98,8 +117,15 @@ export function Login({ onLogin }: LoginProps) {
               )}
             </div>
 
-            <Button variant="primary" size="lg" fullWidth type="submit">
-              Daxil ol
+            <Button variant="primary" size="lg" fullWidth type="submit" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Gözləyin...
+                </>
+              ) : (
+                'Daxil ol'
+              )}
             </Button>
           </form>
 

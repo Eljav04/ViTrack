@@ -21,7 +21,7 @@ export type UserRole = 'employee' | 'admin' | null;
 
 export default function App() {
   const dispatch = useAppDispatch();
-  const { isLoading } = useAppSelector((state) => state.auth);
+  const { isCheckingAuth } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(checkAuth());
@@ -31,7 +31,7 @@ export default function App() {
     dispatch(logout());
   };
 
-  if (isLoading) {
+  if (isCheckingAuth) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
