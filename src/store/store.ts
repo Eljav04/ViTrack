@@ -3,6 +3,7 @@ import authReducer from './authSlice';
 import departmentReducer from './departmentSlice';
 import workScheduleReducer from './workScheduleSlice';
 import userReducer from './userSlice';
+import attendanceReducer from './attendanceSlice';
 
 export const store = configureStore({
     reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
         departments: departmentReducer,
         workSchedules: workScheduleReducer,
         users: userReducer,
+        attendance: attendanceReducer,
     },
 });
 
