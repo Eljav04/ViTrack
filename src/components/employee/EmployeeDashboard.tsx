@@ -1,32 +1,64 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, Calendar, User, LogIn, LogOut, CheckCircle } from 'lucide-react';
-import { currentUser, attendanceRecords, schedules } from '../../data/mockData';
+import { currentUser, schedules } from '../../data/mockData';
 import { Button } from '../ui/button';
 import { StatusBadge } from '../ui/StatusBadge';
 import { EmployeeNav } from './EmployeeNav';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { fetchTodayRecord } from '../../store/attendanceSlice';
 
 export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
   const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const dispatch = useAppDispatch();
+  const todayRecord = useAppSelector((s) => s.attendance.today);
 
   // Update time every minute
-  useState(() => {
+  useEffect(() => {
     const interval = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(interval);
-  });
-
-  const todayRecord = attendanceRecords.find(
-    r => r.employeeId === currentUser.id && r.date === new Date().toISOString().split('T')[0]
-  );
+  }, []);
 
   const schedule = schedules.find(s => s.id === currentUser.scheduleId);
 
-  const workStatus = todayRecord?.checkOut
-    ? 'finished'
-    : todayRecord?.checkIn
-    ? 'at-work'
+  // derive work status from backend today's record if available
+  const workStatus = todayRecord
+    ? (todayRecord.leaveTime ? 'finished' : (todayRecord.arrivalTime ? 'at-work' : 'not-started'))
     : 'not-started';
+
+  useEffect(() => {
+    dispatch(fetchTodayRecord());
+  }, [dispatch]);
+
+  const formatTimeShort = (value: any) => {
+    if (!value) return '—';
+    if (typeof value === 'string') {
+      // Try ISO parse
+      const parsed = Date.parse(value);
+      if (!isNaN(parsed)) {
+        return new Date(parsed).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
+      }
+      // If value like '13:48:44.2983930' just take HH:mm
+      const match = value.match(/^(\d{2}:\d{2})/);
+      if (match) return match[1];
+      return value;
+    }
+    if (value instanceof Date) {
+      return value.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+    return String(value);
+  };
+
+  const getStatusLabel = (rec: any) => {
+    if (!rec) return '-';
+    const isLate = rec?.isLate ?? rec?.IsLate ?? false;
+    const isEarly = rec?.isEarlyLeave ?? rec?.IsEarlyLeave ?? false;
+    if (isLate && isEarly) return 'Gecikib və tez çıxıb';
+    if (isLate) return 'Gecikib';
+    if (isEarly) return 'Tez çıxıb';
+    return 'Vaxtında';
+  };
 
   const statusConfig = {
     'not-started': {
@@ -51,7 +83,7 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
   return (
     <div className="min-h-screen bg-gray-50">
       <EmployeeNav onLogout={onLogout} />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Mobile optimized layout */}
         <div className="space-y-6">
@@ -70,7 +102,7 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
               <div className="text-right">
                 <p className="text-sm text-gray-600 mb-1">Cari Vaxt</p>
                 <p className="text-xl font-semibold text-gray-900">
-                  {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                  {currentTime.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false })}
                 </p>
               </div>
             </div>
@@ -114,18 +146,18 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
               <Clock className="w-5 h-5 text-gray-600" />
               Bu Günün Cədvəli
             </h2>
-            
+
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Cədvəl</span>
                 <span className="font-medium text-gray-900">{schedule?.name}</span>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Başlama Vaxtı</span>
                 <span className="font-medium text-gray-900">{schedule?.startTime}</span>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Bitmə Vaxtı</span>
                 <span className="font-medium text-gray-900">{schedule?.endTime}</span>
@@ -134,33 +166,33 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
               {todayRecord && (
                 <>
                   <div className="border-t border-gray-200 my-4" />
-                  
+
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Giriş</span>
                     <span className="font-medium text-gray-900">
-                      {todayRecord.checkIn || '—'}
+                      {formatTimeShort(todayRecord?.arrivalTime ?? todayRecord?.ArrivalTime ?? todayRecord?.checkIn)}
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Çıxış</span>
                     <span className="font-medium text-gray-900">
-                      {todayRecord.checkOut || '—'}
+                      {formatTimeShort(todayRecord?.leaveTime ?? todayRecord?.LeaveTime ?? todayRecord?.checkOut)}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Status</span>
-                    <StatusBadge status={todayRecord.status} size="sm" />
+                    <span className="font-medium text-gray-900">{getStatusLabel(todayRecord)}</span>
                   </div>
 
-                  {(todayRecord.lateReason || todayRecord.earlyLeaveReason) && (
+                  {(todayRecord?.lateReason || todayRecord?.LateReason || todayRecord?.earlyLeaveReason || todayRecord?.EarlyLeaveReason) && (
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
                       <p className="text-xs text-amber-800 font-medium mb-1">
-                        {todayRecord.lateReason ? 'Gecikmə Səbəbi' : 'Erkən Çıxış Səbəbi'}
+                        {todayRecord?.lateReason || todayRecord?.LateReason ? 'Gecikmə Səbəbi' : 'Erkən Çıxış Səbəbi'}
                       </p>
                       <p className="text-sm text-amber-900">
-                        {todayRecord.lateReason || todayRecord.earlyLeaveReason}
+                        {todayRecord?.lateReason || todayRecord?.LateReason || todayRecord?.earlyLeaveReason || todayRecord?.EarlyLeaveReason}
                       </p>
                     </div>
                   )}
