@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Clock, Calendar, User, LogIn, LogOut, CheckCircle } from 'lucide-react';
 import { currentUser, schedules } from '../../data/mockData';
 import { Button } from '../ui/button';
-import { StatusBadge } from '../ui/StatusBadge';
+import { StatusBadge, AttendanceStatus } from '../ui/StatusBadge';
 import { EmployeeNav } from './EmployeeNav';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchTodayRecord } from '../../store/attendanceSlice';
@@ -50,21 +50,21 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
     return String(value);
   };
 
-  const getStatusLabel = (rec: any) => {
-    if (!rec) return '-';
+  const getRecordStatus = (rec: any): AttendanceStatus => {
+    if (!rec) return 'waiting';
     const isLate = rec?.isLate ?? rec?.IsLate ?? false;
     const isEarly = rec?.isEarlyLeave ?? rec?.IsEarlyLeave ?? false;
-    if (isLate && isEarly) return 'Gecikib və tez çıxıb';
-    if (isLate) return 'Gecikib';
-    if (isEarly) return 'Tez çıxıb';
-    return 'Vaxtında';
+    if (isLate && isEarly) return 'late-and-early';
+    if (isLate) return 'late';
+    if (isEarly) return 'early-leave';
+    return 'on-time';
   };
 
   const statusConfig = {
     'not-started': {
-      label: 'Başlamayıb',
-      color: 'text-gray-600',
-      bgColor: 'bg-gray-100',
+      label: 'Gözlənilir',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-100',
     },
     'at-work': {
       label: 'İşdədir',
@@ -72,9 +72,9 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
       bgColor: 'bg-green-100',
     },
     finished: {
-      label: 'Başa çatdı',
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100',
+      label: 'Tamamlanıb',
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-100',
     },
   };
 
@@ -183,7 +183,7 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
 
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Status</span>
-                    <span className="font-medium text-gray-900">{getStatusLabel(todayRecord)}</span>
+                    <StatusBadge status={getRecordStatus(todayRecord)} size="sm" />
                   </div>
 
                   {(todayRecord?.lateReason || todayRecord?.LateReason || todayRecord?.earlyLeaveReason || todayRecord?.EarlyLeaveReason) && (

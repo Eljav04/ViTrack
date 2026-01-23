@@ -23,6 +23,8 @@ export interface Schedule {
   workHours: number;
 }
 
+import { AttendanceStatus } from '../components/ui/StatusBadge';
+
 export interface AttendanceRecord {
   id: string;
   employeeId: string;
@@ -33,7 +35,7 @@ export interface AttendanceRecord {
   checkOutPhoto?: string;
   checkInLocation?: { lat: number; lng: number; address: string };
   checkOutLocation?: { lat: number; lng: number; address: string };
-  status: 'on-time' | 'late' | 'early-leave' | 'absent';
+  status: AttendanceStatus;
   comment?: string;
   lateReason?: string;
   earlyLeaveReason?: string;
