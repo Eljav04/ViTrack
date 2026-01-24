@@ -13,14 +13,13 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const dispatch = useAppDispatch();
   const todayRecord = useAppSelector((s) => s.attendance.today);
+  const { user } = useAppSelector((state) => state.auth);
 
   // Update time every minute
   useEffect(() => {
     const interval = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(interval);
   }, []);
-
-  const schedule = schedules.find(s => s.id === currentUser.scheduleId);
 
   // derive work status from backend today's record if available
   const workStatus = todayRecord
@@ -34,14 +33,15 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
   const formatTimeShort = (value: any) => {
     if (!value) return '—';
     if (typeof value === 'string') {
+      // If value like '13:48:44' or '13:48:44.298' just take HH:mm
+      const match = value.match(/^(\d{2}:\d{2})/);
+      if (match) return match[1];
+
       // Try ISO parse
       const parsed = Date.parse(value);
       if (!isNaN(parsed)) {
         return new Date(parsed).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
       }
-      // If value like '13:48:44.2983930' just take HH:mm
-      const match = value.match(/^(\d{2}:\d{2})/);
-      if (match) return match[1];
       return value;
     }
     if (value instanceof Date) {
@@ -52,6 +52,9 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
 
   const getRecordStatus = (rec: any): AttendanceStatus => {
     if (!rec) return 'waiting';
+    const arrivalTime = rec?.arrivalTime ?? rec?.ArrivalTime ?? rec?.checkIn;
+    if (!arrivalTime) return 'waiting';
+
     const isLate = rec?.isLate ?? rec?.IsLate ?? false;
     const isEarly = rec?.isEarlyLeave ?? rec?.IsEarlyLeave ?? false;
     if (isLate && isEarly) return 'late-and-early';
@@ -150,18 +153,22 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Cədvəl</span>
-                <span className="font-medium text-gray-900">{schedule?.name}</span>
+                <span className="font-medium text-gray-900">{user?.workSchedule?.name || 'Təyin edilməyib'}</span>
               </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Başlama Vaxtı</span>
-                <span className="font-medium text-gray-900">{schedule?.startTime}</span>
-              </div>
+              {user?.workSchedule && (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Başlama Vaxtı</span>
+                    <span className="font-medium text-gray-900">{formatTimeShort(user.workSchedule.startTime)}</span>
+                  </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Bitmə Vaxtı</span>
-                <span className="font-medium text-gray-900">{schedule?.endTime}</span>
-              </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Bitmə Vaxtı</span>
+                    <span className="font-medium text-gray-900">{formatTimeShort(user.workSchedule.endTime)}</span>
+                  </div>
+                </>
+              )}
 
               {todayRecord && (
                 <>

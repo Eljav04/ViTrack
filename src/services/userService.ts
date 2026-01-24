@@ -3,7 +3,7 @@ import { api } from '../lib/api';
 export interface User {
     id: string; // GUID from backend
     firstname: string;
-    lastname: string; // Backend uses 'Surname' in DTO, mapped to lastname
+    lastname: string;
     login: string; // username/email
     role: string;
     department?: {
@@ -13,8 +13,9 @@ export interface User {
     workSchedule?: {
         id: number;
         name: string;
+        startTime: string;
+        endTime: string;
     } | null;
-    position?: string;
     isDeleted?: boolean;
 }
 
@@ -71,6 +72,11 @@ export const userService = {
         const response = await api.put(`/api/user/change-password/${id}`, JSON.stringify(newPassword), {
             headers: { 'Content-Type': 'application/json' }
         });
+        return response.data;
+    },
+
+    getMe: async () => {
+        const response = await api.get<User>('/api/user/me');
         return response.data;
     }
 };

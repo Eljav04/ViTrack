@@ -74,13 +74,6 @@ export function EmployeeNav({ onLogout }: { onLogout: () => void }) {
               <span className="text-xs font-medium">{item.label}</span>
             </Link>
           ))}
-          <button
-            onClick={onLogout}
-            className={`flex flex-col items-center gap-1 py-3 px-4 flex-1 text-gray-600`}
-          >
-            <X className="w-6 h-6" />
-            <span className="text-xs font-medium">Çıxış</span>
-          </button>
         </div>
       </nav>
     </>

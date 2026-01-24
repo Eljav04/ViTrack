@@ -1,10 +1,12 @@
-import { User, Mail, Briefcase, Clock, Building2, LogOut as LogOutIcon } from 'lucide-react';
-import { currentUser, schedules, getDepartmentName } from '../../data/mockData';
+import { User as UserIcon, Mail, Clock, Building2, Shield, LogOut as LogOutIcon } from 'lucide-react';
+import { useAppSelector } from '../../store/hooks';
 import { EmployeeNav } from './EmployeeNav';
 import { Button } from '../ui/button';
 
 export function EmployeeProfile({ onLogout }: { onLogout: () => void }) {
-  const schedule = schedules.find(s => s.id === currentUser.scheduleId);
+  const { user } = useAppSelector((state) => state.auth);
+
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-8">
@@ -17,27 +19,37 @@ export function EmployeeProfile({ onLogout }: { onLogout: () => void }) {
           {/* Profile Photo & Basic Info */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center gap-4 mb-6">
-              <img
-                src={currentUser.photo}
-                alt={currentUser.name}
-                className="w-20 h-20 rounded-full"
-              />
+              <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-white text-3xl font-semibold">
+                {user.firstname[0]}
+              </div>
               <div>
-                <h3 className="text-xl font-semibold text-gray-900">{currentUser.name}</h3>
-                <p className="text-sm text-gray-600">{currentUser.position}</p>
+                <h3 className="text-xl font-semibold text-gray-900">{user.firstname} {user.lastname}</h3>
+                <p className="text-sm text-gray-600">{user.role === 'User' ? 'İşçi' : 'Administrator'}</p>
               </div>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <Mail className="w-5 h-5 text-gray-600" />
+                  <UserIcon className="w-5 h-5 text-gray-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600">E-poçt</p>
-                  <p className="text-sm font-medium text-gray-900">{currentUser.email}</p>
+                  <p className="text-xs text-gray-600">İstifadəçi adı</p>
+                  <p className="text-sm font-medium text-gray-900">{user.login}</p>
                 </div>
               </div>
+
+              {/* Added Role section */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-gray-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-600">Rol</p>
+                  <p className="text-sm font-medium text-gray-900">{user.role === 'User' ? 'İşçi' : 'Administrator'}</p>
+                </div>
+              </div>
+              {/* End of Added Role section */}
 
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -45,17 +57,7 @@ export function EmployeeProfile({ onLogout }: { onLogout: () => void }) {
                 </div>
                 <div>
                   <p className="text-xs text-gray-600">Şöbə</p>
-                  <p className="text-sm font-medium text-gray-900">{getDepartmentName(currentUser.departmentId)}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <Briefcase className="w-5 h-5 text-gray-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-600">Vəzifə</p>
-                  <p className="text-sm font-medium text-gray-900">{currentUser.position}</p>
+                  <p className="text-sm font-medium text-gray-900">{user.department?.name || 'Təyin edilməyib'}</p>
                 </div>
               </div>
             </div>
@@ -71,23 +73,22 @@ export function EmployeeProfile({ onLogout }: { onLogout: () => void }) {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Cədvəl Tipi</span>
-                <span className="font-medium text-gray-900">{schedule?.name}</span>
+                <span className="font-medium text-gray-900">{user.workSchedule?.name || 'Təyin edilməyib'}</span>
               </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Başlama Vaxtı</span>
-                <span className="font-medium text-gray-900">{schedule?.startTime}</span>
-              </div>
+              {user.workSchedule && (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Başlama Vaxtı</span>
+                    <span className="font-medium text-gray-900">{user.workSchedule.startTime.substring(0, 5)}</span>
+                  </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Bitmə Vaxtı</span>
-                <span className="font-medium text-gray-900">{schedule?.endTime}</span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">İş Saatları</span>
-                <span className="font-medium text-gray-900">{schedule?.workHours} saat</span>
-              </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Bitmə Vaxtı</span>
+                    <span className="font-medium text-gray-900">{user.workSchedule.endTime.substring(0, 5)}</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
