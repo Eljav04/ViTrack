@@ -20,7 +20,6 @@ export function CheckInOut({ type }: CheckInOutProps) {
   const [error, setError] = useState<string | null>(null);
   const [locationDenied, setLocationDenied] = useState(false);
   const [cameraDenied, setCameraDenied] = useState(false);
-  const [savedInitial, setSavedInitial] = useState(false);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -29,6 +28,23 @@ export function CheckInOut({ type }: CheckInOutProps) {
 
   const title = type === 'in' ? 'Giriş Et' : 'Çıxış Et';
   const time = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
+
+  // Calculate current step number
+  const getStepNumber = () => {
+    switch (step) {
+      case 'initial': return 1;
+      case 'location': return 2;
+      case 'photo': return 3;
+      case 'confirm-photo': return 3;
+      case 'qr': return 3;
+      case 'comment': return 4;
+      case 'success': return 4;
+      case 'error': return 4;
+      default: return 1;
+    }
+  };
+
+  const totalSteps = 4;
 
   const handleGetLocation = () => {
     setStep('location');
@@ -42,22 +58,7 @@ export function CheckInOut({ type }: CheckInOutProps) {
         const coords = pos.coords;
         setLocation({ lat: coords.latitude, lng: coords.longitude });
         setLocationDenied(false);
-        if (useQR) setStep('qr'); else setStep('photo');
-        // immediately persist check-in/check-out to record server time to avoid delays
-        if (!savedInitial) {
-          (async () => {
-            try {
-              if (type === 'in') {
-                await dispatch(submitCheckIn({ arrivalImg: null, arrivalLatitude: coords.latitude, arrivalLongitude: coords.longitude, lateReason: null }));
-              } else {
-                await dispatch(submitCheckOut({ leaveImg: null, leaveLatitude: coords.latitude, leaveLongitude: coords.longitude, earlyLeaveReason: null }));
-              }
-              setSavedInitial(true);
-            } catch (e) {
-              // ignore - will be handled on final submission
-            }
-          })();
-        }
+        // Do not auto-advance. Stay on location step to show map.
       },
       (err) => {
         setLocationDenied(true);
@@ -67,10 +68,12 @@ export function CheckInOut({ type }: CheckInOutProps) {
     );
   };
 
-  const handleTakePhoto = () => {
-    // Start camera and show video UI
-    setStep('photo');
-    startCamera();
+  const handleContinueToCamera = () => {
+    if (useQR) {
+      setStep('qr');
+    } else {
+      setStep('photo');
+    }
   };
 
   const startCamera = async () => {
@@ -92,8 +95,22 @@ export function CheckInOut({ type }: CheckInOutProps) {
     }
   };
 
+  // Auto-start camera when entering photo step
   useEffect(() => {
-    // cleanup on unmount
+    if (step === 'photo') {
+      startCamera();
+    }
+    // Cleanup when leaving photo step
+    return () => {
+      if (step !== 'photo' && streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
+      }
+    };
+  }, [step, facingMode]); // Re-run if step changes to photo or facingMode changes
+
+  // Cleanup on unmount
+  useEffect(() => {
     return () => {
       if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
     };
@@ -114,21 +131,17 @@ export function CheckInOut({ type }: CheckInOutProps) {
       if (b) setPhotoBlob(b);
     }, 'image/jpeg', 0.9);
     setStep('confirm-photo');
-    // stop stream
-    if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
-    streamRef.current = null;
   };
 
   const handleSwitchCamera = async () => {
     setFacingMode(f => (f === 'user' ? 'environment' : 'user'));
-    await startCamera();
+    // useEffect will handle restart
   };
 
   const handleRetakePhoto = () => {
     setPhoto(null);
     setPhotoBlob(null);
     setStep('photo');
-    startCamera();
   };
 
   const handleConfirmPhoto = () => {
@@ -136,12 +149,10 @@ export function CheckInOut({ type }: CheckInOutProps) {
   };
 
   const handleSubmitComment = () => {
-    // submit with comment
     finishSubmission();
   };
 
   const handleSkipComment = () => {
-    // finalize without comment
     finishSubmission();
   };
 
@@ -154,19 +165,15 @@ export function CheckInOut({ type }: CheckInOutProps) {
 
   const finishSubmission = async () => {
     try {
-      if (!savedInitial) {
-        if (type === 'in') {
-          await dispatch(submitCheckIn({ arrivalImg: photoBlob, arrivalLatitude: location?.lat ?? null, arrivalLongitude: location?.lng ?? null, lateReason: comment || null }));
-        } else {
-          await dispatch(submitCheckOut({ leaveImg: photoBlob, leaveLatitude: location?.lat ?? null, leaveLongitude: location?.lng ?? null, earlyLeaveReason: comment || null }));
-        }
-        setSavedInitial(true);
+      if (type === 'in') {
+        await dispatch(submitCheckIn({ arrivalImg: photoBlob, arrivalLatitude: location?.lat ?? null, arrivalLongitude: location?.lng ?? null, lateReason: comment || null })).unwrap();
       } else {
-        // already saved initial timestamp; nothing to send to backend (no update endpoint available)
+        await dispatch(submitCheckOut({ leaveImg: photoBlob, leaveLatitude: location?.lat ?? null, leaveLongitude: location?.lng ?? null, earlyLeaveReason: comment || null })).unwrap();
       }
-      await dispatch(fetchTodayRecord());
+      await dispatch(fetchTodayRecord()).unwrap();
       setStep('success');
     } catch (e: any) {
+      console.error('Submission error:', e);
       setError(e?.message || 'Submission failed');
       setStep('error');
     }
@@ -177,37 +184,53 @@ export function CheckInOut({ type }: CheckInOutProps) {
   };
 
   const handleBack = () => {
-    if (step === 'confirm-photo') {
+    if (step === 'location') {
+      setStep('initial');
+    } else if (step === 'photo' || step === 'qr') {
+      setStep('location');
+    } else if (step === 'confirm-photo') {
       setStep('photo');
     } else if (step === 'comment') {
       setStep('confirm-photo');
-    } else if (step === 'photo' || step === 'qr') {
-      setStep('location');
-      setTimeout(() => setStep('initial'), 300);
     } else {
       navigate('/employee');
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-4">
-          <button
-            onClick={handleBack}
-            className="p-2 hover:bg-gray-100 rounded-lg"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
-            <p className="text-sm text-gray-600">{time}</p>
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-2xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-4 mb-4">
+            <button
+              onClick={handleBack}
+              className="p-2 hover:bg-gray-100 rounded-lg"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div className="flex-1">
+              <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
+              <p className="text-sm text-gray-600">{time}</p>
+            </div>
           </div>
+
+          {/* Progress Indicator */}
+          {step !== 'success' && step !== 'error' && (
+            <div className="flex items-center justify-between text-sm font-medium text-gray-600">
+              <span>Adım {getStepNumber()} / {totalSteps}</span>
+              <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-blue-600 transition-all duration-300 ease-out"
+                  style={{ width: `${(getStepNumber() / totalSteps) * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto px-4 py-6 pb-20">
+      <div className="flex-1 max-w-2xl mx-auto w-full px-4 py-6 pb-20">
         {/* Initial Step */}
         {step === 'initial' && (
           <div className="space-y-6">
@@ -255,17 +278,44 @@ export function CheckInOut({ type }: CheckInOutProps) {
 
         {/* Location Step */}
         {step === 'location' && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MapPin className="w-8 h-8 text-blue-600 animate-pulse" />
-              </div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                Yer Müəyyən Edilir
-              </h2>
-              <p className="text-gray-600">
-                Zəhmət olmasa yerinizi yoxlayarkən gözləyin...
-              </p>
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              {!location ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <MapPin className="w-8 h-8 text-blue-600 animate-pulse" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                    Yer Müəyyən Edilir
+                  </h2>
+                  <p className="text-gray-600">
+                    Zəhmət olmasa yerinizi yoxlayarkən gözləyin...
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-green-600 mb-2">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="font-medium">Yer təsdiqləndi</span>
+                  </div>
+
+                  <div className="aspect-video w-full bg-gray-100 rounded-lg overflow-hidden relative border border-gray-200">
+                    <img
+                      src={`https://static-maps.yandex.ru/1.x/?ll=${location.lng},${location.lat}&z=17&l=map&size=600,300&pt=${location.lng},${location.lat},pm2gnm`}
+                      alt="Location Map"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  <div className="text-xs text-center text-gray-500 font-mono bg-gray-50 py-2 rounded">
+                    {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
+                  </div>
+
+                  <Button className="w-full mt-4" size="lg" onClick={handleContinueToCamera}>
+                    Davam Et
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -293,12 +343,13 @@ export function CheckInOut({ type }: CheckInOutProps) {
                   <button
                     className="flex-1 bg-transparent border border-white rounded-md py-2 text-white"
                     onClick={() => {
-                      setLocationDenied(false);
-                      setCameraDenied(false);
-                      if (useQR) setStep('qr'); else setStep('photo');
+                      // If they deny location, maybe just let them pass but without location? 
+                      // For now we just let them try again or stuck. 
+                      // But user might want to cancel.
+                      navigate('/employee');
                     }}
                   >
-                    Keç
+                    Ləğv et
                   </button>
                 </div>
               </div>
@@ -309,38 +360,49 @@ export function CheckInOut({ type }: CheckInOutProps) {
         {/* Photo Step */}
         {step === 'photo' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center gap-2 mb-4 text-green-600">
-                <CheckCircle className="w-5 h-5" />
-                <span className="font-medium">Yer təsdiqləndi</span>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              {/* Camera Viewport */}
+              <div className="aspect-3/4 bg-black relative">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+
+                {/* Switch Camera Button Overlay */}
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center pb-2">
+                  <button
+                    onClick={handleSwitchCamera}
+                    className="bg-black/30 backdrop-blur-md text-white px-4 py-2 rounded-full flex items-center gap-2 border border-white/20 active:scale-95 transition-transform"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    <span className="text-sm">Çevir</span>
+                  </button>
+                </div>
               </div>
-              <p className="text-sm text-gray-600 mb-1">{location ? 'Yer tapıldı' : 'Yer tapılmadı'}</p>
-              <p className="text-xs text-gray-500">{location ? `${location.lat.toFixed(4)}° N, ${location.lng.toFixed(4)}° E` : '—'}</p>
-            </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="font-semibold text-gray-900 mb-4">Şəkil Çək</h2>
+              {/* Controls Below Camera */}
+              <div className="p-6 bg-white">
+                <div className="flex flex-col gap-3">
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    className="w-full py-6 text-lg"
+                    onClick={handleCaptureFromVideo}
+                  >
+                    <Camera className="w-6 h-6 mr-2" />
+                    Çək
+                  </Button>
 
-              <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center mb-4 relative overflow-hidden">
-                <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
-                {!photo && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <Camera className="w-16 h-16 text-gray-400 opacity-80" />
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <Button variant="primary" onClick={handleCaptureFromVideo}>
-                  <Camera className="w-5 h-5 mr-2" />
-                  Çək
-                </Button>
-                <Button variant="outline" onClick={handleSwitchCamera}>
-                  Kamera dəyiş
-                </Button>
-                <Button variant="ghost" onClick={() => { setPhoto(null); setPhotoBlob(null); setStep('confirm-photo'); }}>
-                  Keç
-                </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => { setPhoto(null); setPhotoBlob(null); setStep('confirm-photo'); }}
+                    className="text-gray-500"
+                  >
+                    Şəkilsiz davam et
+                  </Button>
+                </div>
               </div>
 
               <canvas ref={canvasRef} style={{ display: 'none' }} />
@@ -413,31 +475,40 @@ export function CheckInOut({ type }: CheckInOutProps) {
         {step === 'qr' && (
           <div className="space-y-6">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center gap-2 mb-4 text-green-600">
-                <CheckCircle className="w-5 h-5" />
-                <span className="font-medium">Yer təsdiqləndi</span>
+              {location && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-2 text-green-600">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="font-medium">Yer təsdiqləndi</span>
+                  </div>
+                  <div className="aspect-video w-full bg-gray-100 rounded-lg overflow-hidden relative border border-gray-200 mb-2">
+                    <img
+                      src={`https://static-maps.yandex.ru/1.x/?ll=${location.lng},${location.lat}&z=17&l=map&size=600,300&pt=${location.lng},${location.lat},pm2gnm`}
+                      alt="Location Map"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="text-center">
+                <h2 className="font-semibold text-gray-900 mb-4">
+                  QR Kodu Skan Edin
+                </h2>
+
+                <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center mb-4 relative overflow-hidden">
+                  <QrCode className="w-16 h-16 text-gray-400" />
+                  <div className="absolute inset-0 border-2 border-blue-500 animate-pulse" />
+                </div>
+
+                <p className="text-sm text-gray-600 mb-4">
+                  QR kodu çərçivə daxilində yerləşdirin
+                </p>
+
+                <Button variant="primary" fullWidth onClick={handleQRScan}>
+                  Skan Edilir...
+                </Button>
               </div>
-              <p className="text-sm text-gray-600 mb-1">Nizami küç. 123, Bakı</p>
-              <p className="text-xs text-gray-500">40.4093° N, 49.8671° E</p>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="font-semibold text-gray-900 mb-4 text-center">
-                QR Kodu Skan Edin
-              </h2>
-
-              <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center mb-4 relative overflow-hidden">
-                <QrCode className="w-16 h-16 text-gray-400" />
-                <div className="absolute inset-0 border-2 border-blue-500 animate-pulse" />
-              </div>
-
-              <p className="text-sm text-gray-600 text-center mb-4">
-                QR kodu çərçivə daxilində yerləşdirin
-              </p>
-
-              <Button variant="primary" fullWidth onClick={handleQRScan}>
-                Skan Edilir...
-              </Button>
             </div>
           </div>
         )}

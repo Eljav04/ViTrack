@@ -57,4 +57,47 @@ export const attendanceService = {
         });
         return response.data;
     },
+
+    getToday: async (): Promise<AttendanceItem | null> => {
+        try {
+            const response = await api.get<AttendanceItem>('/api/attendance-record/get-current-status');
+            return response.data;
+        } catch (error) {
+            return null;
+        }
+    },
+
+    submitCheckIn: async (data: { arrivalImg?: Blob | null; arrivalLatitude?: number | null; arrivalLongitude?: number | null; lateReason?: string | null }) => {
+        const formData = new FormData();
+        if (data.arrivalImg) {
+            formData.append('ArrivalImg', data.arrivalImg, 'checkin.jpg');
+        }
+        if (data.arrivalLatitude) formData.append('ArrivalLatitude', data.arrivalLatitude.toString());
+        if (data.arrivalLongitude) formData.append('ArrivalLongitude', data.arrivalLongitude.toString());
+        if (data.lateReason) formData.append('LateReason', data.lateReason);
+
+        const response = await api.post('/api/attendance-record/check-in', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    },
+
+    submitCheckOut: async (data: { leaveImg?: Blob | null; leaveLatitude?: number | null; leaveLongitude?: number | null; earlyLeaveReason?: string | null }) => {
+        const formData = new FormData();
+        if (data.leaveImg) {
+            formData.append('LeaveImg', data.leaveImg, 'checkout.jpg');
+        }
+        if (data.leaveLatitude) formData.append('LeaveLatitude', data.leaveLatitude.toString());
+        if (data.leaveLongitude) formData.append('LeaveLongitude', data.leaveLongitude.toString());
+        if (data.earlyLeaveReason) formData.append('EarlyLeaveReason', data.earlyLeaveReason);
+
+        const response = await api.post('/api/attendance-record/check-out', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    },
 };
