@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Calendar, MapPin, Camera, MessageSquare, ChevronRight } from 'lucide-react';
 import { currentUser, attendanceRecords, getDepartmentName } from '../../data/mockData';
-import { StatusBadge } from '../ui/StatusBadge';
+import { StatusBadge, AttendanceStatus } from '../ui/StatusBadge';
 import { EmployeeNav } from './EmployeeNav';
 
 export function EmployeeHistory() {
@@ -12,6 +12,20 @@ export function EmployeeHistory() {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const selectedRecordData = userRecords.find(r => r.id === selectedRecord);
+
+  const getRecordStatus = (rec: any): AttendanceStatus => {
+    if (!rec) return 'waiting';
+    // If we have explicit flags, use them
+    const isLate = rec?.isLate ?? rec?.IsLate ?? (rec.status === 'late');
+    const isEarly = rec?.isEarlyLeave ?? rec?.IsEarlyLeave ?? (rec.status === 'early-leave');
+
+    if (isLate && isEarly) return 'late-and-early';
+    if (isLate) return 'late';
+    if (isEarly) return 'early-leave';
+    if (rec.status === 'absent') return 'absent';
+    if (!rec.checkIn && !rec.checkOut) return 'waiting';
+    return 'on-time';
+  };
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -27,7 +41,7 @@ export function EmployeeHistory() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-8">
-      <EmployeeNav onLogout={() => {}} />
+      <EmployeeNav onLogout={() => { }} />
 
       {!selectedRecord ? (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
@@ -64,7 +78,7 @@ export function EmployeeHistory() {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <StatusBadge status={record.status} size="sm" />
+                  <StatusBadge status={getRecordStatus(record)} size="sm" />
                   <div className="flex items-center gap-2 text-xs text-gray-500">
                     {record.checkInLocation && (
                       <span className="flex items-center gap-1">
@@ -115,7 +129,7 @@ export function EmployeeHistory() {
                       {formatDayOfWeek(selectedRecordData.date)}
                     </p>
                   </div>
-                  <StatusBadge status={selectedRecordData.status} />
+                  <StatusBadge status={getRecordStatus(selectedRecordData)} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -205,41 +219,41 @@ export function EmployeeHistory() {
                 selectedRecordData.comment ||
                 selectedRecordData.lateReason ||
                 selectedRecordData.earlyLeaveReason) && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5" />
-                    Qeydlər
-                  </h3>
-                  <div className="space-y-3">
-                    {selectedRecordData.lateReason && (
-                      <div>
-                        <p className="text-xs text-gray-600 mb-1">Gecikmə Səbəbi</p>
-                        <p className="text-sm text-gray-900">{selectedRecordData.lateReason}</p>
-                      </div>
-                    )}
-                    {selectedRecordData.earlyLeaveReason && (
-                      <div>
-                        <p className="text-xs text-gray-600 mb-1">Erkən Çıxış Səbəbi</p>
-                        <p className="text-sm text-gray-900">
-                          {selectedRecordData.earlyLeaveReason}
-                        </p>
-                      </div>
-                    )}
-                    {selectedRecordData.employeeComment && (
-                      <div>
-                        <p className="text-xs text-gray-600 mb-1">İşçi Şərhi</p>
-                        <p className="text-sm text-gray-900">{selectedRecordData.employeeComment}</p>
-                      </div>
-                    )}
-                    {selectedRecordData.comment && (
-                      <div>
-                        <p className="text-xs text-gray-600 mb-1">Şərh</p>
-                        <p className="text-sm text-gray-900">{selectedRecordData.comment}</p>
-                      </div>
-                    )}
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <MessageSquare className="w-5 h-5" />
+                      Qeydlər
+                    </h3>
+                    <div className="space-y-3">
+                      {selectedRecordData.lateReason && (
+                        <div>
+                          <p className="text-xs text-gray-600 mb-1">Gecikmə Səbəbi</p>
+                          <p className="text-sm text-gray-900">{selectedRecordData.lateReason}</p>
+                        </div>
+                      )}
+                      {selectedRecordData.earlyLeaveReason && (
+                        <div>
+                          <p className="text-xs text-gray-600 mb-1">Erkən Çıxış Səbəbi</p>
+                          <p className="text-sm text-gray-900">
+                            {selectedRecordData.earlyLeaveReason}
+                          </p>
+                        </div>
+                      )}
+                      {selectedRecordData.employeeComment && (
+                        <div>
+                          <p className="text-xs text-gray-600 mb-1">İşçi Şərhi</p>
+                          <p className="text-sm text-gray-900">{selectedRecordData.employeeComment}</p>
+                        </div>
+                      )}
+                      {selectedRecordData.comment && (
+                        <div>
+                          <p className="text-xs text-gray-600 mb-1">Şərh</p>
+                          <p className="text-sm text-gray-900">{selectedRecordData.comment}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* QR Approval */}
               {selectedRecordData.qrApproved && (

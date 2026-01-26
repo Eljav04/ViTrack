@@ -20,7 +20,7 @@ export const fetchTodayRecord = createAsyncThunk('attendance/fetchToday', async 
 
 export const submitCheckIn = createAsyncThunk(
     'attendance/checkIn',
-    async (payload: { arrivalImg?: Blob | null; arrivalLatitude?: number | null; arrivalLongitude?: number | null; lateReason?: string | null }) => {
+    async (payload: { arrivalImg?: Blob | null; arrivalLatitude?: number | null; arrivalLongitude?: number | null; lateReason?: string | null; arrivalTime: string }) => {
         const data = await attendanceService.submitCheckIn(payload);
         return data;
     }
@@ -28,7 +28,7 @@ export const submitCheckIn = createAsyncThunk(
 
 export const submitCheckOut = createAsyncThunk(
     'attendance/checkOut',
-    async (payload: { leaveImg?: Blob | null; leaveLatitude?: number | null; leaveLongitude?: number | null; earlyLeaveReason?: string | null }) => {
+    async (payload: { leaveImg?: Blob | null; leaveLatitude?: number | null; leaveLongitude?: number | null; earlyLeaveReason?: string | null; leaveTime: string }) => {
         const data = await attendanceService.submitCheckOut(payload);
         return data;
     }

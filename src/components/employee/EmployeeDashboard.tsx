@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Clock, Calendar, User, LogIn, LogOut, CheckCircle } from 'lucide-react';
 import { currentUser, schedules } from '../../data/mockData';
 import { Button } from '../ui/button';
-import { StatusBadge } from '../ui/StatusBadge';
+import { cn } from '../ui/utils';
+import { StatusBadge, AttendanceStatus } from '../ui/StatusBadge';
 import { EmployeeNav } from './EmployeeNav';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchTodayRecord } from '../../store/attendanceSlice';
@@ -13,14 +14,13 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const dispatch = useAppDispatch();
   const todayRecord = useAppSelector((s) => s.attendance.today);
+  const { user } = useAppSelector((state) => state.auth);
 
   // Update time every minute
   useEffect(() => {
     const interval = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(interval);
   }, []);
-
-  const schedule = schedules.find(s => s.id === currentUser.scheduleId);
 
   // derive work status from backend today's record if available
   const workStatus = todayRecord
@@ -34,14 +34,15 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
   const formatTimeShort = (value: any) => {
     if (!value) return '—';
     if (typeof value === 'string') {
+      // If value like '13:48:44' or '13:48:44.298' just take HH:mm
+      const match = value.match(/^(\d{2}:\d{2})/);
+      if (match) return match[1];
+
       // Try ISO parse
       const parsed = Date.parse(value);
       if (!isNaN(parsed)) {
         return new Date(parsed).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
       }
-      // If value like '13:48:44.2983930' just take HH:mm
-      const match = value.match(/^(\d{2}:\d{2})/);
-      if (match) return match[1];
       return value;
     }
     if (value instanceof Date) {
@@ -50,21 +51,24 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
     return String(value);
   };
 
-  const getStatusLabel = (rec: any) => {
-    if (!rec) return '-';
+  const getRecordStatus = (rec: any): AttendanceStatus => {
+    if (!rec) return 'waiting';
+    const arrivalTime = rec?.arrivalTime ?? rec?.ArrivalTime ?? rec?.checkIn;
+    if (!arrivalTime) return 'waiting';
+
     const isLate = rec?.isLate ?? rec?.IsLate ?? false;
     const isEarly = rec?.isEarlyLeave ?? rec?.IsEarlyLeave ?? false;
-    if (isLate && isEarly) return 'Gecikib və tez çıxıb';
-    if (isLate) return 'Gecikib';
-    if (isEarly) return 'Tez çıxıb';
-    return 'Vaxtında';
+    if (isLate && isEarly) return 'late-and-early';
+    if (isLate) return 'late';
+    if (isEarly) return 'early-leave';
+    return 'on-time';
   };
 
   const statusConfig = {
     'not-started': {
-      label: 'Başlamayıb',
-      color: 'text-gray-600',
-      bgColor: 'bg-gray-100',
+      label: 'Gözlənilir',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-100',
     },
     'at-work': {
       label: 'İşdədir',
@@ -72,9 +76,9 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
       bgColor: 'bg-green-100',
     },
     finished: {
-      label: 'Başa çatdı',
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100',
+      label: 'Tamamlanıb',
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-100',
     },
   };
 
@@ -110,9 +114,13 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
             {/* Primary Action Button */}
             {workStatus === 'not-started' && (
               <Button
-                variant="primary"
+                className={cn(
+                  "w-full lg:py-6 lg:text-lg",
+                  workStatus === 'not-started'
+                    ? "bg-green-600 hover:bg-green-700 text-white"
+                    : "bg-blue-600 hover:bg-blue-700 text-white"
+                )}
                 size="lg"
-                fullWidth
                 onClick={() => navigate('/employee/check-in')}
               >
                 <LogIn className="w-5 h-5 mr-2" />
@@ -122,9 +130,8 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
 
             {workStatus === 'at-work' && (
               <Button
-                variant="secondary"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white lg:py-6 lg:text-lg"
                 size="lg"
-                fullWidth
                 onClick={() => navigate('/employee/check-out')}
               >
                 <LogOut className="w-5 h-5 mr-2" />
@@ -150,18 +157,22 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Cədvəl</span>
-                <span className="font-medium text-gray-900">{schedule?.name}</span>
+                <span className="font-medium text-gray-900">{user?.workSchedule?.name || 'Təyin edilməyib'}</span>
               </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Başlama Vaxtı</span>
-                <span className="font-medium text-gray-900">{schedule?.startTime}</span>
-              </div>
+              {user?.workSchedule && (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Başlama Vaxtı</span>
+                    <span className="font-medium text-gray-900">{formatTimeShort(user.workSchedule.startTime)}</span>
+                  </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Bitmə Vaxtı</span>
-                <span className="font-medium text-gray-900">{schedule?.endTime}</span>
-              </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Bitmə Vaxtı</span>
+                    <span className="font-medium text-gray-900">{formatTimeShort(user.workSchedule.endTime)}</span>
+                  </div>
+                </>
+              )}
 
               {todayRecord && (
                 <>
@@ -183,7 +194,7 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
 
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Status</span>
-                    <span className="font-medium text-gray-900">{getStatusLabel(todayRecord)}</span>
+                    <StatusBadge status={getRecordStatus(todayRecord)} size="sm" />
                   </div>
 
                   {(todayRecord?.lateReason || todayRecord?.LateReason || todayRecord?.earlyLeaveReason || todayRecord?.EarlyLeaveReason) && (

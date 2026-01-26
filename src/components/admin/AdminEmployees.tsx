@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Plus, Edit2, X, Trash2, Loader2, KeyRound } from 'lucide-react';
+import { UserAvatar } from '../ui/UserAvatar';
+
 import { employees } from '../../data/mockData'; // Keeping for fallback or types if needed? No, should replace.
 import { Button } from '../ui/button';
 import { AdminNav } from './AdminNav';
@@ -285,9 +287,11 @@ export function AdminEmployees({ onLogout }: { onLogout: () => void }) {
                   <tr key={user.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                          {user.firstname[0]}{user.lastname[0]}
-                        </div>
+                        <UserAvatar
+                          firstname={user.firstname}
+                          lastname={user.lastname}
+                          imageUrl={null} // Employee object doesn't seem to have imageUrl currently
+                        />
                         <div>
                           <p className="font-medium text-gray-900">{user.firstname} {user.lastname}</p>
                           <p className="text-sm text-gray-600">{user.login}</p>

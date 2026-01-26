@@ -1,15 +1,14 @@
-import { User, Mail, Shield, Calendar, LogOut as LogOutIcon } from 'lucide-react';
+import { User as UserIcon, Mail, Shield, LogOut as LogOutIcon } from 'lucide-react';
+import { useAppSelector } from '../../store/hooks';
 import { AdminNav } from './AdminNav';
 import { Button } from '../ui/button';
+import { UserAvatar } from '../ui/UserAvatar';
+
 
 export function AdminProfile({ onLogout }: { onLogout: () => void }) {
-  const adminUser = {
-    name: 'Admin İstifadəçi',
-    email: 'admin@sirket.com',
-    role: 'Administrator',
-    department: 'İdarəetmə',
-    joinDate: '15 Yan, 2023',
-  };
+  const { user } = useAppSelector((state) => state.auth);
+
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -22,23 +21,26 @@ export function AdminProfile({ onLogout }: { onLogout: () => void }) {
           {/* Profile Photo & Basic Info */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center text-white text-3xl font-semibold">
-                A
-              </div>
+              <UserAvatar
+                firstname={user.firstname}
+                lastname={user.lastname}
+                imageUrl={null}
+                size="lg"
+              />
               <div>
-                <h3 className="text-xl font-semibold text-gray-900">{adminUser.name}</h3>
-                <p className="text-sm text-gray-600">{adminUser.role}</p>
+                <h3 className="text-xl font-semibold text-gray-900">{user.firstname} {user.lastname}</h3>
+                <p className="text-sm text-gray-600">{user.role === 'User' ? 'İşçi' : 'Administrator'}</p>
               </div>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <Mail className="w-5 h-5 text-gray-600" />
+                  <UserIcon className="w-5 h-5 text-gray-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600">E-poçt</p>
-                  <p className="text-sm font-medium text-gray-900">{adminUser.email}</p>
+                  <p className="text-xs text-gray-600">İstifadəçi adı</p>
+                  <p className="text-sm font-medium text-gray-900">{user.login}</p>
                 </div>
               </div>
 
@@ -48,27 +50,17 @@ export function AdminProfile({ onLogout }: { onLogout: () => void }) {
                 </div>
                 <div>
                   <p className="text-xs text-gray-600">Rol</p>
-                  <p className="text-sm font-medium text-gray-900">{adminUser.role}</p>
+                  <p className="text-sm font-medium text-gray-900">{user.role === 'User' ? 'İşçi' : 'Administrator'}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <User className="w-5 h-5 text-gray-600" />
+                  <UserIcon className="w-5 h-5 text-gray-600" />
                 </div>
                 <div>
                   <p className="text-xs text-gray-600">Şöbə</p>
-                  <p className="text-sm font-medium text-gray-900">{adminUser.department}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-gray-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-600">Qoşulma Tarixi</p>
-                  <p className="text-sm font-medium text-gray-900">{adminUser.joinDate}</p>
+                  <p className="text-sm font-medium text-gray-900">{user.department?.name || 'Təyin edilməyib'}</p>
                 </div>
               </div>
             </div>
