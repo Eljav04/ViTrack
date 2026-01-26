@@ -2,6 +2,8 @@ import { User as UserIcon, Mail, Clock, Building2, Shield, LogOut as LogOutIcon 
 import { useAppSelector } from '../../store/hooks';
 import { EmployeeNav } from './EmployeeNav';
 import { Button } from '../ui/button';
+import { UserAvatar } from '../ui/UserAvatar';
+
 
 export function EmployeeProfile({ onLogout }: { onLogout: () => void }) {
   const { user } = useAppSelector((state) => state.auth);
@@ -19,9 +21,12 @@ export function EmployeeProfile({ onLogout }: { onLogout: () => void }) {
           {/* Profile Photo & Basic Info */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-white text-3xl font-semibold">
-                {user.firstname[0]}
-              </div>
+              <UserAvatar
+                firstname={user.firstname}
+                lastname={user.lastname}
+                imageUrl={null}
+                size="lg"
+              />
               <div>
                 <h3 className="text-xl font-semibold text-gray-900">{user.firstname} {user.lastname}</h3>
                 <p className="text-sm text-gray-600">{user.role === 'User' ? 'İşçi' : 'Administrator'}</p>

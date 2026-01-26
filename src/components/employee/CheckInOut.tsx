@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Camera, MapPin, QrCode, CheckCircle, AlertCircle, ArrowLeft, Check, RotateCcw } from 'lucide-react';
 import { Button } from '../ui/button';
+import { cn } from '../ui/utils';
 import { useAppDispatch } from '../../store/hooks';
 import { submitCheckIn, submitCheckOut, fetchTodayRecord } from '../../store/attendanceSlice';
 
@@ -245,7 +246,10 @@ export function CheckInOut({ type }: CheckInOutProps) {
                     setUseQR(true);
                     handleGetLocation();
                   }}
-                  className="w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all"
+                  className={cn(
+                    "w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-lg transition-all",
+                    type === 'in' ? "hover:border-green-500 hover:bg-green-50" : "hover:border-blue-500 hover:bg-blue-50"
+                  )}
                 >
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                     <QrCode className="w-6 h-6 text-blue-600" />
@@ -261,7 +265,10 @@ export function CheckInOut({ type }: CheckInOutProps) {
                     setUseQR(false);
                     handleGetLocation();
                   }}
-                  className="w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all"
+                  className={cn(
+                    "w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-lg transition-all",
+                    type === 'in' ? "hover:border-green-500 hover:bg-green-50" : "hover:border-blue-500 hover:bg-blue-50"
+                  )}
                 >
                   <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                     <Camera className="w-6 h-6 text-green-600" />
@@ -311,7 +318,14 @@ export function CheckInOut({ type }: CheckInOutProps) {
                     {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
                   </div>
 
-                  <Button className="w-full mt-4" size="lg" onClick={handleContinueToCamera}>
+                  <Button
+                    className={cn(
+                      "w-full mt-4",
+                      type === 'in' ? "bg-green-600 hover:bg-green-700 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"
+                    )}
+                    size="lg"
+                    onClick={handleContinueToCamera}
+                  >
                     Davam Et
                   </Button>
                 </div>
@@ -386,9 +400,10 @@ export function CheckInOut({ type }: CheckInOutProps) {
               <div className="p-6 bg-white">
                 <div className="flex flex-col gap-3">
                   <Button
-                    variant="primary"
-                    size="lg"
-                    className="w-full py-6 text-lg"
+                    className={cn(
+                      "w-full py-6 text-lg",
+                      type === 'in' ? "bg-green-600 hover:bg-green-700 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"
+                    )}
                     onClick={handleCaptureFromVideo}
                   >
                     <Camera className="w-6 h-6 mr-2" />
@@ -432,7 +447,13 @@ export function CheckInOut({ type }: CheckInOutProps) {
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Yenidən Çək
                 </Button>
-                <Button variant="primary" fullWidth onClick={handleConfirmPhoto}>
+                <Button
+                  className={cn(
+                    "flex-1",
+                    type === 'in' ? "bg-green-600 hover:bg-green-700 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"
+                  )}
+                  onClick={handleConfirmPhoto}
+                >
                   <Check className="w-4 h-4 mr-2" />
                   Təsdiq Et
                 </Button>
@@ -463,7 +484,13 @@ export function CheckInOut({ type }: CheckInOutProps) {
                 <Button variant="outline" fullWidth onClick={handleSkipComment}>
                   Keç
                 </Button>
-                <Button variant="primary" fullWidth onClick={handleSubmitComment}>
+                <Button
+                  className={cn(
+                    "flex-1",
+                    type === 'in' ? "bg-green-600 hover:bg-green-700 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"
+                  )}
+                  onClick={handleSubmitComment}
+                >
                   Təsdiq Et
                 </Button>
               </div>
@@ -505,7 +532,13 @@ export function CheckInOut({ type }: CheckInOutProps) {
                   QR kodu çərçivə daxilində yerləşdirin
                 </p>
 
-                <Button variant="primary" fullWidth onClick={handleQRScan}>
+                <Button
+                  className={cn(
+                    "w-full",
+                    type === 'in' ? "bg-green-600 hover:bg-green-700 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"
+                  )}
+                  onClick={handleQRScan}
+                >
                   Skan Edilir...
                 </Button>
               </div>
@@ -551,7 +584,13 @@ export function CheckInOut({ type }: CheckInOutProps) {
                 )}
               </div>
 
-              <Button variant="primary" fullWidth onClick={handleComplete}>
+              <Button
+                className={cn(
+                  "w-full",
+                  type === 'in' ? "bg-green-600 hover:bg-green-700 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"
+                )}
+                onClick={handleComplete}
+              >
                 Ana Səhifəyə Qayıt
               </Button>
             </div>
@@ -572,7 +611,13 @@ export function CheckInOut({ type }: CheckInOutProps) {
                 {error || 'Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.'}
               </p>
 
-              <Button variant="primary" fullWidth onClick={() => setStep('initial')}>
+              <Button
+                className={cn(
+                  "w-full",
+                  type === 'in' ? "bg-green-600 hover:bg-green-700 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"
+                )}
+                onClick={() => setStep('initial')}
+              >
                 Yenidən Cəhd Et
               </Button>
             </div>

@@ -1,6 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, ClipboardList, Users, Calendar, Building2, User, Menu, X } from 'lucide-react';
 import { useAppSelector } from '../../store/hooks';
+import { UserAvatar } from '../ui/UserAvatar';
+
 import { useState } from 'react';
 import logo from '../../assets/img/logo.png';
 
@@ -56,9 +58,11 @@ export function AdminNav({ onLogout }: { onLogout: () => void }) {
                 <p className="text-sm font-medium text-gray-900">{user?.firstname} {user?.lastname}</p>
                 <p className="text-xs text-gray-600">{user?.role === 'Admin' ? 'Administrator' : 'User'}</p>
               </div>
-              <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                {user?.firstname?.[0] || 'A'}
-              </div>
+              <UserAvatar
+                firstname={user?.firstname}
+                lastname={user?.lastname}
+                imageUrl={null}
+              />
             </Link>
             <button onClick={onLogout} className="text-gray-600 hover:text-red-600 text-sm px-3">
               Çıxış

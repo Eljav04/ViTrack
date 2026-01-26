@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Clock, Calendar, User, LogIn, LogOut, CheckCircle } from 'lucide-react';
 import { currentUser, schedules } from '../../data/mockData';
 import { Button } from '../ui/button';
+import { cn } from '../ui/utils';
 import { StatusBadge, AttendanceStatus } from '../ui/StatusBadge';
 import { EmployeeNav } from './EmployeeNav';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
@@ -113,9 +114,8 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
             {/* Primary Action Button */}
             {workStatus === 'not-started' && (
               <Button
-                variant="primary"
+                className="w-full bg-green-600 hover:bg-green-700 text-white lg:py-6 lg:text-lg"
                 size="lg"
-                fullWidth
                 onClick={() => navigate('/employee/check-in')}
               >
                 <LogIn className="w-5 h-5 mr-2" />
@@ -125,9 +125,8 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
 
             {workStatus === 'at-work' && (
               <Button
-                variant="secondary"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white lg:py-6 lg:text-lg"
                 size="lg"
-                fullWidth
                 onClick={() => navigate('/employee/check-out')}
               >
                 <LogOut className="w-5 h-5 mr-2" />

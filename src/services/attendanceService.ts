@@ -27,6 +27,8 @@ export interface AttendanceItem {
     leaveLocation: Location | null;
     arrivalImage: string | null;
     leaveImage: string | null;
+    lateReason: string | null;
+    earlyLeaveReason: string | null;
     isLate: boolean;
     isEarlyLeave: boolean;
     createdAt: string;
@@ -76,11 +78,7 @@ export const attendanceService = {
         if (data.arrivalLongitude) formData.append('ArrivalLongitude', data.arrivalLongitude.toString());
         if (data.lateReason) formData.append('LateReason', data.lateReason);
 
-        const response = await api.post('/api/attendance-record/check-in', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+        const response = await api.post('/api/attendance-record/check-in', formData);
         return response.data;
     },
 
@@ -93,11 +91,7 @@ export const attendanceService = {
         if (data.leaveLongitude) formData.append('LeaveLongitude', data.leaveLongitude.toString());
         if (data.earlyLeaveReason) formData.append('EarlyLeaveReason', data.earlyLeaveReason);
 
-        const response = await api.post('/api/attendance-record/check-out', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+        const response = await api.post('/api/attendance-record/check-out', formData);
         return response.data;
     },
 };

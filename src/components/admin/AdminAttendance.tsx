@@ -22,6 +22,9 @@ import { Badge } from '../ui/badge';
 import { format, parseISO, differenceInMinutes } from 'date-fns';
 import { az } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { getImageUrl } from '../../lib/imageUtils';
+import { UserAvatar } from '../ui/UserAvatar';
+
 
 export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
   const [data, setData] = useState<AttendanceItem[]>([]);
@@ -227,13 +230,21 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                   {data.map((record) => (
                     <tr key={record.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex flex-col">
-                          <span className="font-medium text-gray-900">
-                            {record.employee?.firstname} {record.employee?.lastname}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {record.employee?.departmentName}
-                          </span>
+                        <div className="flex items-center gap-3">
+                          <UserAvatar
+                            firstname={record.employee?.firstname}
+                            lastname={record.employee?.lastname}
+                            imageUrl={null} // Attendance employee object doesn't seem to have imageUrl currently
+                            size="sm"
+                          />
+                          <div className="flex flex-col">
+                            <span className="font-medium text-gray-900">
+                              {record.employee?.firstname} {record.employee?.lastname}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {record.employee?.departmentName}
+                            </span>
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -401,8 +412,16 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                     </div>
 
                     {selectedRecord.arrivalImage ? (
-                      <div className="rounded-lg overflow-hidden border border-gray-200">
-                        <img src={selectedRecord.arrivalImage} alt="Arrival" className="w-full h-40 object-cover" />
+                      <div className="space-y-2">
+                        <div className="rounded-lg overflow-hidden border border-gray-200">
+                          <img src={getImageUrl(selectedRecord.arrivalImage)} alt="Arrival" className="w-full h-40 object-cover" />
+                        </div>
+                        {selectedRecord.lateReason && (
+                          <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-100">
+                            <p className="text-xs text-yellow-600 font-medium mb-1">Gecikmə səbəbi:</p>
+                            <p className="text-sm text-yellow-800">{selectedRecord.lateReason}</p>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="h-40 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-sm">
@@ -430,8 +449,16 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                     </div>
 
                     {selectedRecord.leaveImage ? (
-                      <div className="rounded-lg overflow-hidden border border-gray-200">
-                        <img src={selectedRecord.leaveImage} alt="Leave" className="w-full h-40 object-cover" />
+                      <div className="space-y-2">
+                        <div className="rounded-lg overflow-hidden border border-gray-200">
+                          <img src={getImageUrl(selectedRecord.leaveImage)} alt="Leave" className="w-full h-40 object-cover" />
+                        </div>
+                        {selectedRecord.earlyLeaveReason && (
+                          <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                            <p className="text-xs text-blue-600 font-medium mb-1">Tez çıxış səbəbi:</p>
+                            <p className="text-sm text-blue-800">{selectedRecord.earlyLeaveReason}</p>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="h-40 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-sm">

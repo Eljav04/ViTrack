@@ -1,7 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Calendar, User, Menu, X } from 'lucide-react';
 import { useAppSelector } from '../../store/hooks';
-import { currentUser } from '../../data/mockData'; // Keep for photo
+import { UserAvatar } from '../ui/UserAvatar';
+
 import { useState } from 'react';
 import logo from '../../assets/img/logo.png';
 
@@ -48,10 +49,10 @@ export function EmployeeNav({ onLogout }: { onLogout: () => void }) {
             </div>
 
             <div className="md:hidden">
-              <img
-                src={currentUser.photo}
-                alt={user?.firstname}
-                className="w-10 h-10 rounded-full"
+              <UserAvatar
+                firstname={user?.firstname}
+                lastname={user?.lastname}
+                imageUrl={null}
               />
             </div>
           </div>
