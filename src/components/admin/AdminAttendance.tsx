@@ -227,128 +227,147 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {data.map((record) => (
-                    <tr key={record.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <UserAvatar
-                            firstname={record.employee?.firstname}
-                            lastname={record.employee?.lastname}
-                            imageUrl={null} // Attendance employee object doesn't seem to have imageUrl currently
-                            size="sm"
-                          />
-                          <div className="flex flex-col">
-                            <span className="font-medium text-gray-900">
-                              {record.employee?.firstname} {record.employee?.lastname}
+                  {Object.entries(
+                    data.reduce((groups, record) => {
+                      const date = parseISO(record.date);
+                      const monthYear = format(date, 'MMMM yyyy', { locale: az });
+                      if (!groups[monthYear]) {
+                        groups[monthYear] = [];
+                      }
+                      groups[monthYear].push(record);
+                      return groups;
+                    }, {} as Record<string, AttendanceItem[]>)
+                  ).map(([monthYear, records]) => (
+                    <div key={monthYear} style={{ display: 'contents' }}>
+                      <tr className="bg-gray-50 border-y border-gray-200">
+                        <td colSpan={7} className="px-6 py-2 text-sm font-semibold text-gray-700">
+                          {monthYear}
+                        </td>
+                      </tr>
+                      {records.map((record) => (
+                        <tr key={record.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center gap-3">
+                              <UserAvatar
+                                firstname={record.employee?.firstname}
+                                lastname={record.employee?.lastname}
+                                imageUrl={null} // Attendance employee object doesn't seem to have imageUrl currently
+                                size="sm"
+                              />
+                              <div className="flex flex-col">
+                                <span className="font-medium text-gray-900">
+                                  {record.employee?.firstname} {record.employee?.lastname}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {record.employee?.departmentName}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="text-sm text-gray-900">{formatDate(record.date)}</span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-gray-900">
+                                {formatTime(record.arrivalTime)}
+                              </span>
+                              {record.isLate ? (
+                                <StatusBadge status="late" size="sm" />
+                              ) : (
+                                <StatusBadge status="on-time" size="sm" />
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-gray-900">
+                                {formatTime(record.leaveTime)}
+                              </span>
+                              {!record.leaveTime ? (
+                                <StatusBadge status="waiting" size="sm" />
+                              ) : record.isEarlyLeave ? (
+                                <StatusBadge status="early-leave" size="sm" />
+                              ) : (
+                                <StatusBadge status="on-time" size="sm" />
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="text-sm text-gray-600 font-mono">
+                              {calculateWorkedHours(record.arrivalTime, record.leaveTime)}
                             </span>
-                            <span className="text-xs text-gray-500">
-                              {record.employee?.departmentName}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900">{formatDate(record.date)}</span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-gray-900">
-                            {formatTime(record.arrivalTime)}
-                          </span>
-                          {record.isLate ? (
-                            <StatusBadge status="late" size="sm" />
-                          ) : (
-                            <StatusBadge status="on-time" size="sm" />
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-gray-900">
-                            {formatTime(record.leaveTime)}
-                          </span>
-                          {!record.leaveTime ? (
-                            <StatusBadge status="waiting" size="sm" />
-                          ) : record.isEarlyLeave ? (
-                            <StatusBadge status="early-leave" size="sm" />
-                          ) : (
-                            <StatusBadge status="on-time" size="sm" />
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-600 font-mono">
-                          {calculateWorkedHours(record.arrivalTime, record.leaveTime)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <TooltipProvider>
-                          <div className="flex items-center gap-2">
-                            {/* Arrival Photo */}
-                            {record.arrivalImage && (
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <div className="w-7 h-7 bg-green-50 rounded flex items-center justify-center border border-green-100 text-green-600">
-                                    <Camera className="w-3.5 h-3.5" />
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Giriş üçün foto</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
-                            {/* Arrival Location */}
-                            {record.arrivalLocation && (
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <div className="w-7 h-7 bg-green-50 rounded flex items-center justify-center border border-green-100 text-green-600">
-                                    <MapPin className="w-3.5 h-3.5" />
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Giriş üçün lokasiya</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <TooltipProvider>
+                              <div className="flex items-center gap-2">
+                                {/* Arrival Photo */}
+                                {record.arrivalImage && (
+                                  <Tooltip>
+                                    <TooltipTrigger>
+                                      <div className="w-7 h-7 bg-green-50 rounded flex items-center justify-center border border-green-100 text-green-600">
+                                        <Camera className="w-3.5 h-3.5" />
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Giriş üçün foto</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                )}
+                                {/* Arrival Location */}
+                                {record.arrivalLocation && (
+                                  <Tooltip>
+                                    <TooltipTrigger>
+                                      <div className="w-7 h-7 bg-green-50 rounded flex items-center justify-center border border-green-100 text-green-600">
+                                        <MapPin className="w-3.5 h-3.5" />
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Giriş üçün lokasiya</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                )}
 
-                            {/* Leave Photo */}
-                            {record.leaveImage && (
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <div className="w-7 h-7 bg-blue-50 rounded flex items-center justify-center border border-blue-100 text-blue-600">
-                                    <Camera className="w-3.5 h-3.5" />
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Çıxış üçün foto</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
-                            {/* Leave Location */}
-                            {record.leaveLocation && (
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <div className="w-7 h-7 bg-blue-50 rounded flex items-center justify-center border border-blue-100 text-blue-600">
-                                    <MapPin className="w-3.5 h-3.5" />
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Çıxış üçün lokasiya</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
-                          </div>
-                        </TooltipProvider>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => setSelectedRecord(record)}
-                          className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
-                        >
-                          Ətraflı Bax
-                        </button>
-                      </td>
-                    </tr>
+                                {/* Leave Photo */}
+                                {record.leaveImage && (
+                                  <Tooltip>
+                                    <TooltipTrigger>
+                                      <div className="w-7 h-7 bg-blue-50 rounded flex items-center justify-center border border-blue-100 text-blue-600">
+                                        <Camera className="w-3.5 h-3.5" />
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Çıxış üçün foto</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                )}
+                                {/* Leave Location */}
+                                {record.leaveLocation && (
+                                  <Tooltip>
+                                    <TooltipTrigger>
+                                      <div className="w-7 h-7 bg-blue-50 rounded flex items-center justify-center border border-blue-100 text-blue-600">
+                                        <MapPin className="w-3.5 h-3.5" />
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Çıxış üçün lokasiya</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                )}
+                              </div>
+                            </TooltipProvider>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <button
+                              onClick={() => setSelectedRecord(record)}
+                              className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
+                            >
+                              Ətraflı Bax
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </div>
                   ))}
                 </tbody>
               </table>
