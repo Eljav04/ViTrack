@@ -204,6 +204,8 @@ export function CheckInOut({ type }: CheckInOutProps) {
   };
 
   const handleBack = () => {
+    setLocationDenied(false);
+    setCameraDenied(false);
     if (step === 'location') {
       setStep('initial');
     } else if (step === 'photo' || step === 'qr') {
@@ -220,7 +222,7 @@ export function CheckInOut({ type }: CheckInOutProps) {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-[60]">
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4 mb-4">
             <button
@@ -355,15 +357,36 @@ export function CheckInOut({ type }: CheckInOutProps) {
 
         {/* Permission Modal (centered) */}
         {(locationDenied || cameraDenied) && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-            <div className="relative z-10 w-[90%] max-w-md rounded-lg overflow-hidden">
-              <div className="bg-red-600 text-white p-6 rounded-lg shadow-lg">
-                <div className="font-medium text-lg mb-1">İcazə tələb olunur</div>
-                <div className="text-sm mb-4">{locationDenied ? 'Yerə girişə icazə verilmədi' : 'Kameraya girişə icazə verilmədi'}</div>
-                <div className="flex gap-3">
-                  <button
-                    className="flex-1 bg-white text-red-600 rounded-md py-2 font-medium"
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <div className="relative z-10 w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
+              <div className="p-6 text-center">
+                <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-100">
+                  <AlertCircle className="w-8 h-8 text-red-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">İcazə tələb olunur</h3>
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  {locationDenied
+                    ? 'Məkan məlumatınızın göndərilməsinə icazə verməlisiniz. Davam edə bilərsiniz, lakin bu halda yerləşdiyiniz məkan göndərilməyəcək.'
+                    : 'Kameradan istifadəyə icazə verməlisiniz. Davam edə bilərsiniz, lakin bu halda şəkliniz göndərilməyəcək.'}
+                </p>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    fullWidth
+                    onClick={() => {
+                      setLocationDenied(false);
+                      setCameraDenied(false);
+                      if (step === 'location') setStep('photo');
+                      else if (step === 'photo') setStep('confirm-photo');
+                    }}
+                  >
+                    Davam et
+                  </Button>
+                  <Button
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                    fullWidth
                     onClick={() => {
                       setLocationDenied(false);
                       setCameraDenied(false);
@@ -372,18 +395,7 @@ export function CheckInOut({ type }: CheckInOutProps) {
                     }}
                   >
                     Yenidən cəhd
-                  </button>
-                  <button
-                    className="flex-1 bg-transparent border border-white rounded-md py-2 text-white"
-                    onClick={() => {
-                      // If they deny location, maybe just let them pass but without location? 
-                      // For now we just let them try again or stuck. 
-                      // But user might want to cancel.
-                      navigate('/employee');
-                    }}
-                  >
-                    Ləğv et
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -498,6 +510,18 @@ export function CheckInOut({ type }: CheckInOutProps) {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px] resize-none"
                 placeholder="Şərh daxil edin..."
               />
+
+              {(!location || (step === 'comment' && !photoBlob && !useQR)) && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4 mt-6">
+                  <div className="flex gap-3 text-red-700 mb-2">
+                    <AlertCircle className="w-5 h-5 shrink-0" />
+                    <p className="font-bold">Diqqət!</p>
+                  </div>
+                  <p className="text-sm text-red-600 leading-relaxed">
+                    Davamiyyəti qeyd edərkən lokasiya və şəkil göndərməlisiniz. Siz lokasiya və ya kamera icazəsini verməmisiniz və ya nəsə xəta baş verib. Əgər bunları göndərmək istəyirsinizsə, zəhmət olmasa yenidən cəhd edin.
+                  </p>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3 mt-4">
                 <Button variant="outline" fullWidth onClick={handleSkipComment}>
