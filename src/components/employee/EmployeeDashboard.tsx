@@ -114,7 +114,12 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
             {/* Primary Action Button */}
             {workStatus === 'not-started' && (
               <Button
-                className="w-full bg-green-600 hover:bg-green-700 text-white lg:py-6 lg:text-lg"
+                className={cn(
+                  "w-full lg:py-6 lg:text-lg",
+                  workStatus === 'not-started'
+                    ? "bg-green-600 hover:bg-green-700 text-white"
+                    : "bg-blue-600 hover:bg-blue-700 text-white"
+                )}
                 size="lg"
                 onClick={() => navigate('/employee/check-in')}
               >

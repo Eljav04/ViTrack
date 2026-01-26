@@ -158,18 +158,37 @@ export function CheckInOut({ type }: CheckInOutProps) {
   };
 
   const handleQRScan = () => {
-    // Simulate QR scan
+    // Simulate QR scan and then submit
     setTimeout(() => {
-      setStep('success');
+      finishSubmission();
     }, 1500);
   };
 
   const finishSubmission = async () => {
     try {
+      const trimmedComment = comment.trim();
+      const finalComment = trimmedComment || null;
+      const timeStr = new Date().toTimeString().split(' ')[0]; // HH:mm:ss
+
+      // Determine the image to send based on useQR flag
+      const imageToSend = useQR ? null : photoBlob;
+
       if (type === 'in') {
-        await dispatch(submitCheckIn({ arrivalImg: photoBlob, arrivalLatitude: location?.lat ?? null, arrivalLongitude: location?.lng ?? null, lateReason: comment || null })).unwrap();
+        await dispatch(submitCheckIn({
+          arrivalImg: imageToSend,
+          arrivalLatitude: location?.lat ?? null,
+          arrivalLongitude: location?.lng ?? null,
+          lateReason: finalComment,
+          arrivalTime: timeStr
+        })).unwrap();
       } else {
-        await dispatch(submitCheckOut({ leaveImg: photoBlob, leaveLatitude: location?.lat ?? null, leaveLongitude: location?.lng ?? null, earlyLeaveReason: comment || null })).unwrap();
+        await dispatch(submitCheckOut({
+          leaveImg: imageToSend,
+          leaveLatitude: location?.lat ?? null,
+          leaveLongitude: location?.lng ?? null,
+          earlyLeaveReason: finalComment,
+          leaveTime: timeStr
+        })).unwrap();
       }
       await dispatch(fetchTodayRecord()).unwrap();
       setStep('success');
