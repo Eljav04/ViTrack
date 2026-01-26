@@ -60,6 +60,16 @@ export const attendanceService = {
         return response.data;
     },
 
+    getMyRecords: async (pageNumber: number = 1, pageSize: number = 20): Promise<AttendanceResponse> => {
+        const response = await api.get<AttendanceResponse>('/api/attendance-record/get-my-records', {
+            params: {
+                PageNumber: pageNumber,
+                PageSize: pageSize,
+            },
+        });
+        return response.data;
+    },
+
     getToday: async (): Promise<AttendanceItem | null> => {
         try {
             const response = await api.get<AttendanceItem>('/api/attendance-record/get-current-status');
