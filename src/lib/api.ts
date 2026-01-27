@@ -10,9 +10,10 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Prevent infinite redirect loop if already on login page
-      if (!window.location.pathname.startsWith('/login')) {
-        window.location.href = '/login';
+      const currentPath = window.location.pathname;
+      if (currentPath !== '/login' && !currentPath.startsWith('/login')) {
+        console.warn('Unauthorized access detected, redirecting to login...');
+        window.location.replace('/login');
       }
     }
     return Promise.reject(error);
