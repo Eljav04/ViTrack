@@ -432,22 +432,34 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
 
                     {selectedRecord.arrivalImage ? (
                       <div className="space-y-2">
-                        <div className="rounded-lg overflow-hidden border border-gray-200">
-                          <img src={getImageUrl(selectedRecord.arrivalImage)} alt="Arrival" className="w-full h-40 object-cover" />
+                        <div className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 aspect-video flex items-center justify-center">
+                          <img
+                            src={getImageUrl(selectedRecord.arrivalImage)}
+                            alt="Arrival"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              // Instead of external placeholder, we can use a local fallback UI
+                              e.currentTarget.style.display = 'none';
+                              const parent = e.currentTarget.parentElement;
+                              if (parent) {
+                                parent.innerHTML = '<div class="flex flex-col items-center text-gray-400 p-4"><svg class="w-12 h-12 mb-2 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><span class="text-xs">Şəkil yüklənmədi</span></div>';
+                              }
+                            }}
+                          />
                         </div>
                         {selectedRecord.lateReason && (
-                          <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-100">
-                            <p className="text-xs text-yellow-600 font-medium mb-1">Gecikmə səbəbi:</p>
-                            <p className="text-sm text-yellow-800">{selectedRecord.lateReason}</p>
+                          <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
+                            <p className="text-xs text-emerald-600 font-medium mb-1">Qeyd:</p>
+                            <p className="text-sm text-emerald-800">{selectedRecord.lateReason}</p>
                           </div>
                         )}
                       </div>
                     ) : (
-                      <div className="h-40 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-sm">
+                      <div className="aspect-video bg-gray-50 rounded-lg flex flex-col items-center justify-center text-gray-400 text-sm border border-dashed border-gray-200">
+                        <Camera className="w-8 h-8 mb-2 opacity-20" />
                         Şəkil yoxdur
                       </div>
                     )}
-
                   </div>
 
                   {/* Leave */}
@@ -469,18 +481,30 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
 
                     {selectedRecord.leaveImage ? (
                       <div className="space-y-2">
-                        <div className="rounded-lg overflow-hidden border border-gray-200">
-                          <img src={getImageUrl(selectedRecord.leaveImage)} alt="Leave" className="w-full h-40 object-cover" />
+                        <div className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 aspect-video flex items-center justify-center">
+                          <img
+                            src={getImageUrl(selectedRecord.leaveImage)}
+                            alt="Leave"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              const parent = e.currentTarget.parentElement;
+                              if (parent) {
+                                parent.innerHTML = '<div class="flex flex-col items-center text-gray-400 p-4"><svg class="w-12 h-12 mb-2 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><span class="text-xs">Şəkil yüklənmədi</span></div>';
+                              }
+                            }}
+                          />
                         </div>
                         {selectedRecord.earlyLeaveReason && (
-                          <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
-                            <p className="text-xs text-blue-600 font-medium mb-1">Tez çıxış səbəbi:</p>
-                            <p className="text-sm text-blue-800">{selectedRecord.earlyLeaveReason}</p>
+                          <div className="bg-sky-50 p-3 rounded-lg border border-sky-100">
+                            <p className="text-xs text-sky-600 font-medium mb-1">Qeyd:</p>
+                            <p className="text-sm text-sky-800">{selectedRecord.earlyLeaveReason}</p>
                           </div>
                         )}
                       </div>
                     ) : (
-                      <div className="h-40 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-sm">
+                      <div className="aspect-video bg-gray-50 rounded-lg flex flex-col items-center justify-center text-gray-400 text-sm border border-dashed border-gray-200">
+                        <Camera className="w-8 h-8 mb-2 opacity-20" />
                         Şəkil yoxdur
                       </div>
                     )}
@@ -568,9 +592,10 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
               </div>
             )}
           </div>
-        </div>
-      )}
-    </div>
+        </div >
+      )
+      }
+    </div >
   );
 }
 

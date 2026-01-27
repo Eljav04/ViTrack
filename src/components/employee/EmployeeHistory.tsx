@@ -170,7 +170,7 @@ export function EmployeeHistory() {
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        <div className="text-center min-w-[3rem]">
+                        <div className="text-center min-w-12">
                           <div className="text-xs text-gray-600 uppercase">
                             {formatDayOfWeek(record.date)}
                           </div>
@@ -191,43 +191,40 @@ export function EmployeeHistory() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <StatusBadge status={getRecordStatus(record)} size="sm" />
-                        {((record.lateReason || record.earlyLeaveReason) && !record.isLate && !record.isEarlyLeave) && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                            Qeyd
-                          </span>
-                        )}
                       </div>
 
-                      <div className="flex items-center gap-3 text-xs text-gray-500">
-                        {(record.arrivalLocation || record.leaveLocation) && (
-                          <span className="flex items-center gap-1" title="Lokasiya">
-                            <MapPin className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Yer</span>
-                          </span>
-                        )}
-                        {(record.arrivalImage || record.leaveImage) && (
-                          <span className="flex items-center gap-1" title="Şəkil">
-                            <Camera className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Şəkil</span>
-                          </span>
-                        )}
+                      <div className="flex items-center gap-1.5">
+                        {/* Arrival Photo */}
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${record.arrivalImage ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-50 border-gray-100 text-gray-300'}`}>
+                          <Camera className="w-4 h-4" />
+                        </div>
+                        {/* Arrival Location */}
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${record.arrivalLocation ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-50 border-gray-100 text-gray-300'}`}>
+                          <MapPin className="w-4 h-4" />
+                        </div>
+                        {/* Leave Photo */}
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${record.leaveImage ? 'bg-sky-50 border-sky-100 text-sky-600' : 'bg-gray-50 border-gray-100 text-gray-300'}`}>
+                          <Camera className="w-4 h-4" />
+                        </div>
+                        {/* Leave Location */}
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${record.leaveLocation ? 'bg-sky-50 border-sky-100 text-sky-600' : 'bg-gray-50 border-gray-100 text-gray-300'}`}>
+                          <MapPin className="w-4 h-4" />
+                        </div>
                       </div>
                     </div>
 
                     {(record.lateReason || record.earlyLeaveReason) && (
-                      <div className="mt-3 pt-3 border-t border-gray-100">
+                      <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
                         {record.lateReason && (
-                          <p className={`text-sm flex items-center gap-1 mb-1 ${!record.isLate ? 'text-green-700' : 'text-gray-600'}`}>
+                          <p className="text-sm flex items-center gap-2 text-emerald-700 font-medium">
                             <MessageSquare className="w-3.5 h-3.5" />
-                            <span className="font-medium text-xs text-gray-500 mr-1">Gecikmə səbəbi:</span>
-                            {record.lateReason}
+                            <span>Qeyd: {record.lateReason}</span>
                           </p>
                         )}
                         {record.earlyLeaveReason && (
-                          <p className={`text-sm flex items-center gap-1 ${!record.isEarlyLeave ? 'text-green-700' : 'text-gray-600'}`}>
+                          <p className="text-sm flex items-center gap-2 text-sky-700 font-medium">
                             <MessageSquare className="w-3.5 h-3.5" />
-                            <span className="font-medium text-xs text-gray-500 mr-1">Tez çıxış səbəbi:</span>
-                            {record.earlyLeaveReason}
+                            <span>Qeyd: {record.earlyLeaveReason}</span>
                           </p>
                         )}
                       </div>
@@ -303,21 +300,39 @@ export function EmployeeHistory() {
                   {selectedRecord.arrivalImage && (
                     <div>
                       <p className="text-xs text-gray-600 mb-2">Giriş</p>
-                      <img
-                        src={getImageUrl(selectedRecord.arrivalImage)}
-                        alt="Check in"
-                        className="w-full aspect-square object-cover rounded-lg border border-gray-100"
-                      />
+                      <div className="rounded-lg overflow-hidden border border-gray-100 aspect-video flex items-center justify-center bg-gray-50">
+                        <img
+                          src={getImageUrl(selectedRecord.arrivalImage)}
+                          alt="Check in"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const parent = e.currentTarget.parentElement;
+                            if (parent) {
+                              parent.innerHTML = '<div class="flex flex-col items-center text-gray-400 p-2"><svg class="w-8 h-8 mb-1 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><span class="text-[10px]">Yüklənmədi</span></div>';
+                            }
+                          }}
+                        />
+                      </div>
                     </div>
                   )}
                   {selectedRecord.leaveImage && (
                     <div>
                       <p className="text-xs text-gray-600 mb-2">Çıxış</p>
-                      <img
-                        src={getImageUrl(selectedRecord.leaveImage)}
-                        alt="Check out"
-                        className="w-full aspect-square object-cover rounded-lg border border-gray-100"
-                      />
+                      <div className="rounded-lg overflow-hidden border border-gray-100 aspect-video flex items-center justify-center bg-gray-50">
+                        <img
+                          src={getImageUrl(selectedRecord.leaveImage)}
+                          alt="Check out"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const parent = e.currentTarget.parentElement;
+                            if (parent) {
+                              parent.innerHTML = '<div class="flex flex-col items-center text-gray-400 p-2"><svg class="w-8 h-8 mb-1 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><span class="text-[10px]">Yüklənmədi</span></div>';
+                            }
+                          }}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -369,15 +384,15 @@ export function EmployeeHistory() {
                 </h3>
                 <div className="space-y-3">
                   {selectedRecord.lateReason && (
-                    <div className={`p-3 rounded-lg ${!selectedRecord.isLate ? 'bg-green-50 border border-green-100' : 'bg-gray-50'}`}>
-                      <p className={`text-xs mb-1 font-medium ${!selectedRecord.isLate ? 'text-green-800' : 'text-gray-500'}`}>Gecikmə Səbəbi {!selectedRecord.isLate && '(Qəbul edildi)'}</p>
-                      <p className={`text-sm ${!selectedRecord.isLate ? 'text-green-900' : 'text-gray-900'}`}>{selectedRecord.lateReason}</p>
+                    <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-100">
+                      <p className="text-xs mb-1 font-medium text-emerald-800">Qeyd:</p>
+                      <p className="text-sm text-emerald-900">{selectedRecord.lateReason}</p>
                     </div>
                   )}
                   {selectedRecord.earlyLeaveReason && (
-                    <div className={`p-3 rounded-lg ${!selectedRecord.isEarlyLeave ? 'bg-green-50 border border-green-100' : 'bg-gray-50'}`}>
-                      <p className={`text-xs mb-1 font-medium ${!selectedRecord.isEarlyLeave ? 'text-green-800' : 'text-gray-500'}`}>Erkən Çıxış Səbəbi {!selectedRecord.isEarlyLeave && '(Qəbul edildi)'}</p>
-                      <p className={`text-sm ${!selectedRecord.isEarlyLeave ? 'text-green-900' : 'text-gray-900'}`}>
+                    <div className="p-3 rounded-lg bg-sky-50 border border-sky-100">
+                      <p className="text-xs mb-1 font-medium text-sky-800">Qeyd:</p>
+                      <p className="text-sm text-sky-900">
                         {selectedRecord.earlyLeaveReason}
                       </p>
                     </div>
