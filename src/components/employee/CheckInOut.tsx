@@ -336,7 +336,7 @@ export function CheckInOut({ type }: CheckInOutProps) {
                   </div>
 
                   <div className="text-xs text-center text-gray-500 font-mono bg-gray-50 py-2 rounded">
-                    {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
+                    {location.lat}, {location.lng}
                   </div>
 
                   <Button

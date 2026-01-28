@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { Search, Camera, MapPin, MessageSquare, X, ChevronLeft, ChevronRight, Clock, AlertCircle } from 'lucide-react';
 import { attendanceService, AttendanceItem, MetaData } from '../../services/attendanceService';
 import { StatusBadge, AttendanceStatus } from '../ui/StatusBadge';
@@ -238,7 +238,7 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                       return groups;
                     }, {} as Record<string, AttendanceItem[]>)
                   ).map(([monthYear, records]) => (
-                    <div key={monthYear} style={{ display: 'contents' }}>
+                    <Fragment key={monthYear}>
                       <tr className="bg-gray-50 border-y border-gray-200">
                         <td colSpan={7} className="px-6 py-2 text-sm font-semibold text-gray-700">
                           {monthYear}
@@ -367,7 +367,7 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                           </td>
                         </tr>
                       ))}
-                    </div>
+                    </Fragment>
                   ))}
                 </tbody>
               </table>

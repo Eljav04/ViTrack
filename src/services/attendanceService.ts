@@ -89,10 +89,10 @@ export const attendanceService = {
         }
 
         if (data.arrivalLatitude !== null && data.arrivalLatitude !== undefined) {
-            formData.append('ArrivalLatitude', data.arrivalLatitude.toString().replace('.', ','));
+            formData.append('ArrivalLatitude', data.arrivalLatitude.toString());
         }
         if (data.arrivalLongitude !== null && data.arrivalLongitude !== undefined) {
-            formData.append('ArrivalLongitude', data.arrivalLongitude.toString().replace('.', ','));
+            formData.append('ArrivalLongitude', data.arrivalLongitude.toString());
         }
 
         if (data.lateReason) {
@@ -113,10 +113,10 @@ export const attendanceService = {
         }
 
         if (data.leaveLatitude !== null && data.leaveLatitude !== undefined) {
-            formData.append('LeaveLatitude', data.leaveLatitude.toString().replace('.', ','));
+            formData.append('LeaveLatitude', data.leaveLatitude.toString());
         }
         if (data.leaveLongitude !== null && data.leaveLongitude !== undefined) {
-            formData.append('LeaveLongitude', data.leaveLongitude.toString().replace('.', ','));
+            formData.append('LeaveLongitude', data.leaveLongitude.toString());
         }
 
         if (data.earlyLeaveReason) {
