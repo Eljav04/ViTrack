@@ -34,7 +34,6 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
   const [pageNumber, setPageNumber] = useState(1);
   const [selectedRecord, setSelectedRecord] = useState<AttendanceItem | null>(null);
 
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -52,7 +51,6 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
   useEffect(() => {
     fetchData();
   }, [pageNumber, pageSize]);
-
 
 
 
