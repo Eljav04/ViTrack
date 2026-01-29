@@ -89,10 +89,10 @@ export const attendanceService = {
         }
 
         if (data.arrivalLatitude !== null && data.arrivalLatitude !== undefined) {
-            formData.append('ArrivalLatitude', data.arrivalLatitude.toString());
+            formData.append('ArrivalLatitude', String(data.arrivalLatitude));
         }
         if (data.arrivalLongitude !== null && data.arrivalLongitude !== undefined) {
-            formData.append('ArrivalLongitude', data.arrivalLongitude.toString());
+            formData.append('ArrivalLongitude', String(data.arrivalLongitude));
         }
 
         if (data.lateReason) {
@@ -100,6 +100,9 @@ export const attendanceService = {
         }
 
         const response = await api.post('/api/attendance-record/check-in', formData);
+
+        console.log(formData.get('ArrivalLatitude'));
+        console.log(response.data);
         return response.data;
     },
 

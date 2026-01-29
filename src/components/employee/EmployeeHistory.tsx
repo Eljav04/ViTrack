@@ -300,7 +300,7 @@ export function EmployeeHistory() {
                   {selectedRecord.arrivalImage && (
                     <div>
                       <p className="text-xs text-gray-600 mb-2">Giriş</p>
-                      <div className="rounded-lg overflow-hidden border border-gray-100 aspect-video flex items-center justify-center bg-gray-50">
+                      <div className="rounded-lg overflow-hidden border border-gray-100 aspect-square flex items-center justify-center bg-gray-50">
                         <img
                           src={getImageUrl(selectedRecord.arrivalImage)}
                           alt="Check in"
@@ -319,7 +319,7 @@ export function EmployeeHistory() {
                   {selectedRecord.leaveImage && (
                     <div>
                       <p className="text-xs text-gray-600 mb-2">Çıxış</p>
-                      <div className="rounded-lg overflow-hidden border border-gray-100 aspect-video flex items-center justify-center bg-gray-50">
+                      <div className="rounded-lg overflow-hidden border border-gray-100 aspect-square flex items-center justify-center bg-gray-50">
                         <img
                           src={getImageUrl(selectedRecord.leaveImage)}
                           alt="Check out"
