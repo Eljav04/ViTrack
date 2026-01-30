@@ -1,4 +1,5 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5286';
+let BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5286';
+
 
 export function getImageUrl(path: string | null | undefined): string {
     if (!path) return '';
@@ -10,6 +11,7 @@ export function getImageUrl(path: string | null | undefined): string {
 
     // Clean the path (remove leading slash if exists)
     const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    BASE_URL = BASE_URL.startsWith('/') ? BASE_URL.substring(1) : BASE_URL;
 
     return `${BASE_URL}/${cleanPath}`;
 }

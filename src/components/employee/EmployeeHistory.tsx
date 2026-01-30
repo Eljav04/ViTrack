@@ -14,6 +14,7 @@ import {
 } from "../ui/pagination";
 import { format, parseISO } from 'date-fns';
 import { az } from 'date-fns/locale';
+import { getImageUrl } from '../../lib/imageUtils';
 
 export function EmployeeHistory() {
   const [selectedRecord, setSelectedRecord] = useState<AttendanceItem | null>(null);
@@ -217,14 +218,14 @@ export function EmployeeHistory() {
                       <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
                         {record.lateReason && (
                           <p className="text-sm flex items-center gap-2 text-emerald-700 font-medium">
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            <span>Qeyd: {record.lateReason}</span>
+                            <MessageSquare className="w-3.5 h-3.5 shrink-0" />
+                            <span className="wrap-break-word line-clamp-2">Qeyd: {record.lateReason.length > 30 ? record.lateReason.substring(0, 30) + '...' : record.lateReason}</span>
                           </p>
                         )}
                         {record.earlyLeaveReason && (
                           <p className="text-sm flex items-center gap-2 text-sky-700 font-medium">
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            <span>Qeyd: {record.earlyLeaveReason}</span>
+                            <MessageSquare className="w-3.5 h-3.5 shrink-0" />
+                            <span className="wrap-break-word line-clamp-2">Qeyd: {record.earlyLeaveReason.length > 30 ? record.earlyLeaveReason.substring(0, 30) + '...' : record.earlyLeaveReason}</span>
                           </p>
                         )}
                       </div>
@@ -300,7 +301,7 @@ export function EmployeeHistory() {
                   {selectedRecord.arrivalImage && (
                     <div>
                       <p className="text-xs text-gray-600 mb-2">Giriş</p>
-                      <div className="rounded-lg overflow-hidden border border-gray-100 aspect-video flex items-center justify-center bg-gray-50">
+                      <div className="rounded-lg overflow-hidden border border-gray-100 aspect-square flex items-center justify-center bg-gray-50">
                         <img
                           src={getImageUrl(selectedRecord.arrivalImage)}
                           alt="Check in"
@@ -319,7 +320,7 @@ export function EmployeeHistory() {
                   {selectedRecord.leaveImage && (
                     <div>
                       <p className="text-xs text-gray-600 mb-2">Çıxış</p>
-                      <div className="rounded-lg overflow-hidden border border-gray-100 aspect-video flex items-center justify-center bg-gray-50">
+                      <div className="rounded-lg overflow-hidden border border-gray-100 aspect-square flex items-center justify-center bg-gray-50">
                         <img
                           src={getImageUrl(selectedRecord.leaveImage)}
                           alt="Check out"
@@ -350,9 +351,7 @@ export function EmployeeHistory() {
                   {selectedRecord.arrivalLocation && (
                     <div>
                       <p className="text-xs text-gray-600 mb-1">Giriş Yeri</p>
-                      <p className="text-sm text-gray-900">
-                        {selectedRecord.arrivalLocation.address || 'Ünvan təyin edilməyib'}
-                      </p>
+
                       <p className="text-xs text-gray-500 font-mono mt-1">
                         {selectedRecord.arrivalLocation.latitude.toFixed(6)},{' '}
                         {selectedRecord.arrivalLocation.longitude.toFixed(6)}
@@ -362,9 +361,7 @@ export function EmployeeHistory() {
                   {selectedRecord.leaveLocation && (
                     <div className="pt-3 border-t border-gray-100">
                       <p className="text-xs text-gray-600 mb-1">Çıxış Yeri</p>
-                      <p className="text-sm text-gray-900">
-                        {selectedRecord.leaveLocation.address || 'Ünvan təyin edilməyib'}
-                      </p>
+
                       <p className="text-xs text-gray-500 font-mono mt-1">
                         {selectedRecord.leaveLocation.latitude.toFixed(6)},{' '}
                         {selectedRecord.leaveLocation.longitude.toFixed(6)}
@@ -386,13 +383,13 @@ export function EmployeeHistory() {
                   {selectedRecord.lateReason && (
                     <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-100">
                       <p className="text-xs mb-1 font-medium text-emerald-800">Qeyd:</p>
-                      <p className="text-sm text-emerald-900">{selectedRecord.lateReason}</p>
+                      <p className="text-sm text-emerald-900 wrap-break-word">{selectedRecord.lateReason}</p>
                     </div>
                   )}
                   {selectedRecord.earlyLeaveReason && (
                     <div className="p-3 rounded-lg bg-sky-50 border border-sky-100">
                       <p className="text-xs mb-1 font-medium text-sky-800">Qeyd:</p>
-                      <p className="text-sm text-sky-900">
+                      <p className="text-sm text-sky-900 wrap-break-word">
                         {selectedRecord.earlyLeaveReason}
                       </p>
                     </div>
@@ -402,8 +399,9 @@ export function EmployeeHistory() {
             )}
           </div>
         </div>
-      )}
-    </div>
+      )
+      }
+    </div >
   );
 }
 
@@ -415,15 +413,4 @@ function ChevronLeftIcon({ className }: { className?: string }) {
   )
 }
 
-// Simple helper to get full image URL if needed, similar to AdminAttendance logic
-const getImageUrl = (path: string | null) => {
-  if (!path) return '';
-  // Assuming relative path needs base URL or it's already full
-  // If your API returns full URL, just return path.
-  // If it returns relative, prepend base url. 
-  // Adapting based on other files, it seems just path is used or helper needed.
-  // I'll grab the helper from imageUtils if available, but for now strict implementation:
-  if (path.startsWith('http')) return path;
-  // You might need to adjust this base URL
-  return `https://vitrack-api.eljan.dev${path}`;
-};
+

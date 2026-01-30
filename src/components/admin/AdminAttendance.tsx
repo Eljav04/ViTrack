@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { Search, Camera, MapPin, MessageSquare, X, ChevronLeft, ChevronRight, Clock, AlertCircle } from 'lucide-react';
 import { attendanceService, AttendanceItem, MetaData } from '../../services/attendanceService';
 import { StatusBadge, AttendanceStatus } from '../ui/StatusBadge';
@@ -34,7 +34,6 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
   const [pageNumber, setPageNumber] = useState(1);
   const [selectedRecord, setSelectedRecord] = useState<AttendanceItem | null>(null);
 
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -52,7 +51,6 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
   useEffect(() => {
     fetchData();
   }, [pageNumber, pageSize]);
-
 
 
 
@@ -238,7 +236,7 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                       return groups;
                     }, {} as Record<string, AttendanceItem[]>)
                   ).map(([monthYear, records]) => (
-                    <div key={monthYear} style={{ display: 'contents' }}>
+                    <Fragment key={monthYear}>
                       <tr className="bg-gray-50 border-y border-gray-200">
                         <td colSpan={7} className="px-6 py-2 text-sm font-semibold text-gray-700">
                           {monthYear}
@@ -300,60 +298,54 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <TooltipProvider>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1.5">
                                 {/* Arrival Photo */}
-                                {record.arrivalImage && (
-                                  <Tooltip>
-                                    <TooltipTrigger>
-                                      <div className="w-7 h-7 bg-green-50 rounded flex items-center justify-center border border-green-100 text-green-600">
-                                        <Camera className="w-3.5 h-3.5" />
-                                      </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>Giriş üçün foto</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                )}
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${record.arrivalImage ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-50 border-gray-100 text-gray-300'}`}>
+                                      <Camera className="w-4 h-4" />
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Giriş üçün foto {record.arrivalImage ? 'var' : 'yoxdur'}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+
                                 {/* Arrival Location */}
-                                {record.arrivalLocation && (
-                                  <Tooltip>
-                                    <TooltipTrigger>
-                                      <div className="w-7 h-7 bg-green-50 rounded flex items-center justify-center border border-green-100 text-green-600">
-                                        <MapPin className="w-3.5 h-3.5" />
-                                      </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>Giriş üçün lokasiya</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                )}
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${record.arrivalLocation ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-50 border-gray-100 text-gray-300'}`}>
+                                      <MapPin className="w-4 h-4" />
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Giriş üçün lokasiya {record.arrivalLocation ? 'var' : 'yoxdur'}</p>
+                                  </TooltipContent>
+                                </Tooltip>
 
                                 {/* Leave Photo */}
-                                {record.leaveImage && (
-                                  <Tooltip>
-                                    <TooltipTrigger>
-                                      <div className="w-7 h-7 bg-blue-50 rounded flex items-center justify-center border border-blue-100 text-blue-600">
-                                        <Camera className="w-3.5 h-3.5" />
-                                      </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>Çıxış üçün foto</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                )}
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${record.leaveImage ? 'bg-sky-50 border-sky-100 text-sky-600' : 'bg-gray-50 border-gray-100 text-gray-300'}`}>
+                                      <Camera className="w-4 h-4" />
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Çıxış üçün foto {record.leaveImage ? 'var' : 'yoxdur'}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+
                                 {/* Leave Location */}
-                                {record.leaveLocation && (
-                                  <Tooltip>
-                                    <TooltipTrigger>
-                                      <div className="w-7 h-7 bg-blue-50 rounded flex items-center justify-center border border-blue-100 text-blue-600">
-                                        <MapPin className="w-3.5 h-3.5" />
-                                      </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>Çıxış üçün lokasiya</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                )}
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${record.leaveLocation ? 'bg-sky-50 border-sky-100 text-sky-600' : 'bg-gray-50 border-gray-100 text-gray-300'}`}>
+                                      <MapPin className="w-4 h-4" />
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Çıxış üçün lokasiya {record.leaveLocation ? 'var' : 'yoxdur'}</p>
+                                  </TooltipContent>
+                                </Tooltip>
                               </div>
                             </TooltipProvider>
                           </td>
@@ -367,7 +359,7 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                           </td>
                         </tr>
                       ))}
-                    </div>
+                    </Fragment>
                   ))}
                 </tbody>
               </table>
@@ -381,58 +373,58 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
       </div>
 
       {/* Details Modal */}
-      {selectedRecord && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col md:flex-row overflow-hidden">
+      {
+        selectedRecord && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col md:flex-row overflow-hidden">
 
-            {/* Left Side: Info */}
-            <div className="flex-1 p-6 overflow-y-auto">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">
-                    {selectedRecord.employee?.firstname || 'N/A'} {selectedRecord.employee?.lastname || 'N/A'}
-                  </h3>
-                  <p className="text-gray-500 text-sm">{selectedRecord.employee?.departmentName || 'N/A'}</p>
-                </div>
-                <button onClick={() => setSelectedRecord(null)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                  <X className="w-5 h-5 text-gray-500" />
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 p-4 rounded-xl">
-                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Tarix</p>
-                    <p className="font-semibold">{formatDate(selectedRecord.date)}</p>
+              {/* Left Side: Info */}
+              <div className="flex-1 p-6 overflow-y-auto">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">
+                      {selectedRecord.employee?.firstname || 'N/A'} {selectedRecord.employee?.lastname || 'N/A'}
+                    </h3>
+                    <p className="text-gray-500 text-sm">{selectedRecord.employee?.departmentName || 'N/A'}</p>
                   </div>
-                  <div className="bg-gray-50 p-4 rounded-xl">
-                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">İşlənmiş saat</p>
-                    <p className="font-semibold font-mono">{calculateWorkedHours(selectedRecord.arrivalTime, selectedRecord.leaveTime)}</p>
-                  </div>
+                  <button onClick={() => setSelectedRecord(null)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                    <X className="w-5 h-5 text-gray-500" />
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6 relative">
-                  <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-200 -translate-x-1/2 hidden md:block"></div>
-
-                  {/* Arrival */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      <h4 className="font-semibold text-gray-900">Giriş</h4>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-gray-50 p-4 rounded-xl">
+                      <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Tarix</p>
+                      <p className="font-semibold">{formatDate(selectedRecord.date)}</p>
                     </div>
-                    <div className="pl-4 border-l-2 border-green-100">
-                      <p className="text-2xl font-bold text-gray-900 mb-1">{formatTime(selectedRecord.arrivalTime)}</p>
-
-                      {selectedRecord.isLate ? (
-                        <StatusBadge status="late" size="sm" />
-                      ) : (
-                        <StatusBadge status="on-time" size="sm" />
-                      )}
+                    <div className="bg-gray-50 p-4 rounded-xl">
+                      <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">İşlənmiş saat</p>
+                      <p className="font-semibold font-mono">{calculateWorkedHours(selectedRecord.arrivalTime, selectedRecord.leaveTime)}</p>
                     </div>
+                  </div>
 
-                    {selectedRecord.arrivalImage ? (
-                      <div className="space-y-2">
-                        <div className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 aspect-video flex items-center justify-center">
+                  <div className="grid grid-cols-2 gap-6 relative">
+                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-200 -translate-x-1/2 hidden md:block"></div>
+
+                    {/* Arrival */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                        <h4 className="font-semibold text-gray-900">Giriş</h4>
+                      </div>
+                      <div className="pl-4 border-l-2 border-green-100">
+                        <p className="text-2xl font-bold text-gray-900 mb-1">{formatTime(selectedRecord.arrivalTime)}</p>
+
+                        {selectedRecord.isLate ? (
+                          <StatusBadge status="late" size="sm" />
+                        ) : (
+                          <StatusBadge status="on-time" size="sm" />
+                        )}
+                      </div>
+
+                      {selectedRecord.arrivalImage ? (
+                        <div className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 aspect-square flex items-center justify-center">
                           <img
                             src={getImageUrl(selectedRecord.arrivalImage)}
                             alt="Arrival"
@@ -447,41 +439,40 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                             }}
                           />
                         </div>
-                        {selectedRecord.lateReason && (
-                          <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
-                            <p className="text-xs text-emerald-600 font-medium mb-1">Qeyd:</p>
-                            <p className="text-sm text-emerald-800">{selectedRecord.lateReason}</p>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="aspect-video bg-gray-50 rounded-lg flex flex-col items-center justify-center text-gray-400 text-sm border border-dashed border-gray-200">
-                        <Camera className="w-8 h-8 mb-2 opacity-20" />
-                        Şəkil yoxdur
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Leave */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                      <h4 className="font-semibold text-gray-900">Çıxış</h4>
-                    </div>
-                    <div className="pl-4 border-l-2 border-blue-100">
-                      <p className="text-2xl font-bold text-gray-900 mb-1">{formatTime(selectedRecord.leaveTime)}</p>
-                      {!selectedRecord.leaveTime ? (
-                        <StatusBadge status="waiting" size="sm" />
-                      ) : selectedRecord.isEarlyLeave ? (
-                        <StatusBadge status="early-leave" size="sm" />
                       ) : (
-                        <StatusBadge status="on-time" size="sm" />
+                        <div className="aspect-square bg-gray-50 rounded-lg flex flex-col items-center justify-center text-gray-400 text-sm border border-dashed border-gray-200">
+                          <Camera className="w-8 h-8 mb-2 opacity-20" />
+                          Şəkil yoxdur
+                        </div>
+                      )}
+
+                      {selectedRecord.lateReason && (
+                        <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
+                          <p className="text-xs text-emerald-600 font-medium mb-1">Qeyd:</p>
+                          <p className="text-sm text-emerald-800 wrap-break-word">{selectedRecord.lateReason}</p>
+                        </div>
                       )}
                     </div>
 
-                    {selectedRecord.leaveImage ? (
-                      <div className="space-y-2">
-                        <div className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 aspect-video flex items-center justify-center">
+                    {/* Leave */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                        <h4 className="font-semibold text-gray-900">Çıxış</h4>
+                      </div>
+                      <div className="pl-4 border-l-2 border-blue-100">
+                        <p className="text-2xl font-bold text-gray-900 mb-1">{formatTime(selectedRecord.leaveTime)}</p>
+                        {!selectedRecord.leaveTime ? (
+                          <StatusBadge status="waiting" size="sm" />
+                        ) : selectedRecord.isEarlyLeave ? (
+                          <StatusBadge status="early-leave" size="sm" />
+                        ) : (
+                          <StatusBadge status="on-time" size="sm" />
+                        )}
+                      </div>
+
+                      {selectedRecord.leaveImage ? (
+                        <div className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 aspect-square flex items-center justify-center">
                           <img
                             src={getImageUrl(selectedRecord.leaveImage)}
                             alt="Leave"
@@ -495,105 +486,105 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                             }}
                           />
                         </div>
-                        {selectedRecord.earlyLeaveReason && (
-                          <div className="bg-sky-50 p-3 rounded-lg border border-sky-100">
-                            <p className="text-xs text-sky-600 font-medium mb-1">Qeyd:</p>
-                            <p className="text-sm text-sky-800">{selectedRecord.earlyLeaveReason}</p>
+                      ) : (
+                        <div className="aspect-square bg-gray-50 rounded-lg flex flex-col items-center justify-center text-gray-400 text-sm border border-dashed border-gray-200">
+                          <Camera className="w-8 h-8 mb-2 opacity-20" />
+                          Şəkil yoxdur
+                        </div>
+                      )}
+
+                      {selectedRecord.earlyLeaveReason && (
+                        <div className="bg-sky-50 p-3 rounded-lg border border-sky-100">
+                          <p className="text-xs text-sky-600 font-medium mb-1">Qeyd:</p>
+                          <p className="text-sm text-sky-800 wrap-break-word">{selectedRecord.earlyLeaveReason}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Side: Map */}
+              {(isValidLocation(selectedRecord.arrivalLocation) || isValidLocation(selectedRecord.leaveLocation)) && (
+                <div className="md:w-1/2 bg-gray-50 flex flex-col overflow-y-auto border-l border-gray-200">
+                  <div className="p-6 space-y-6">
+                    {isValidLocation(selectedRecord.arrivalLocation) && (
+                      <div className="bg-white rounded-xl border border-green-200 shadow-sm overflow-hidden">
+                        <div className="p-3 border-b border-gray-100 flex items-center gap-2 bg-green-50/50">
+                          <MapPin className="w-4 h-4 text-green-600" />
+                          <h4 className="font-semibold text-gray-900 text-sm">Giriş Lokasiyası</h4>
+                        </div>
+
+                        <div className="aspect-video w-full bg-gray-100 relative">
+                          {/* Static Map Image */}
+                          <img
+                            src={`https://static-maps.yandex.ru/1.x/?ll=${selectedRecord.arrivalLocation!.longitude},${selectedRecord.arrivalLocation!.latitude}&z=17&l=map&size=600,300&pt=${selectedRecord.arrivalLocation!.longitude},${selectedRecord.arrivalLocation!.latitude},pm2gnm`}
+                            alt="Giriş xəritəsi"
+                            className="w-full h-full object-cover"
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                          />
+                        </div>
+
+                        <div className="p-4 flex flex-col gap-2">
+                          {selectedRecord.arrivalLocation!.address && (
+                            <Badge variant="outline" className="w-full justify-start text-sm py-2 gap-2 px-3 font-normal">
+                              <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                              <span className="truncate">{selectedRecord.arrivalLocation!.address}</span>
+                            </Badge>
+                          )}
+                          <div className="flex gap-2 w-full">
+                            <Badge variant="secondary" className="font-mono text-xs text-gray-500 bg-gray-100 hover:bg-gray-100">
+                              Lat: {selectedRecord.arrivalLocation!.latitude}
+                            </Badge>
+                            <Badge variant="secondary" className="font-mono text-xs text-gray-500 bg-gray-100 hover:bg-gray-100">
+                              Lon: {selectedRecord.arrivalLocation!.longitude}
+                            </Badge>
                           </div>
-                        )}
+                        </div>
                       </div>
-                    ) : (
-                      <div className="aspect-video bg-gray-50 rounded-lg flex flex-col items-center justify-center text-gray-400 text-sm border border-dashed border-gray-200">
-                        <Camera className="w-8 h-8 mb-2 opacity-20" />
-                        Şəkil yoxdur
+                    )}
+
+                    {isValidLocation(selectedRecord.leaveLocation) && (
+                      <div className="bg-white rounded-xl border border-blue-200 shadow-sm overflow-hidden">
+                        <div className="p-3 border-b border-gray-100 flex items-center gap-2 bg-blue-50/50">
+                          <MapPin className="w-4 h-4 text-blue-600" />
+                          <h4 className="font-semibold text-gray-900 text-sm">Çıxış Lokasiyası</h4>
+                        </div>
+
+                        <div className="aspect-video w-full bg-gray-100 relative">
+                          {/* Static Map Image */}
+                          <img
+                            src={`https://static-maps.yandex.ru/1.x/?ll=${selectedRecord.leaveLocation!.longitude},${selectedRecord.leaveLocation!.latitude}&z=17&l=map&size=600,300&pt=${selectedRecord.leaveLocation!.longitude},${selectedRecord.leaveLocation!.latitude},pm2blm`}
+                            alt="Çıxış xəritəsi"
+                            className="w-full h-full object-cover"
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                          />
+                        </div>
+
+                        <div className="p-4 flex flex-col gap-2">
+                          {selectedRecord.leaveLocation!.address && (
+                            <Badge variant="outline" className="w-full justify-start text-sm py-2 gap-2 px-3 font-normal">
+                              <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                              <span className="truncate">{selectedRecord.leaveLocation!.address}</span>
+                            </Badge>
+                          )}
+                          <div className="flex gap-2 w-full">
+                            <Badge variant="secondary" className="font-mono text-xs text-gray-500 bg-gray-100 hover:bg-gray-100">
+                              Lat: {selectedRecord.leaveLocation!.latitude}
+                            </Badge>
+                            <Badge variant="secondary" className="font-mono text-xs text-gray-500 bg-gray-100 hover:bg-gray-100">
+                              Lon: {selectedRecord.leaveLocation!.longitude}
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
                 </div>
-              </div>
+              )}
             </div>
-
-            {/* Right Side: Map */}
-            {(isValidLocation(selectedRecord.arrivalLocation) || isValidLocation(selectedRecord.leaveLocation)) && (
-              <div className="md:w-1/2 bg-gray-50 flex flex-col overflow-y-auto border-l border-gray-200">
-                <div className="p-6 space-y-6">
-                  {isValidLocation(selectedRecord.arrivalLocation) && (
-                    <div className="bg-white rounded-xl border border-green-200 shadow-sm overflow-hidden">
-                      <div className="p-3 border-b border-gray-100 flex items-center gap-2 bg-green-50/50">
-                        <MapPin className="w-4 h-4 text-green-600" />
-                        <h4 className="font-semibold text-gray-900 text-sm">Giriş Lokasiyası</h4>
-                      </div>
-
-                      <div className="aspect-video w-full bg-gray-100 relative">
-                        {/* Static Map Image */}
-                        <img
-                          src={`https://static-maps.yandex.ru/1.x/?ll=${selectedRecord.arrivalLocation!.longitude},${selectedRecord.arrivalLocation!.latitude}&z=17&l=map&size=600,300&pt=${selectedRecord.arrivalLocation!.longitude},${selectedRecord.arrivalLocation!.latitude},pm2gnm`}
-                          alt="Giriş xəritəsi"
-                          className="w-full h-full object-cover"
-                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                        />
-                      </div>
-
-                      <div className="p-4 flex flex-col gap-2">
-                        {selectedRecord.arrivalLocation!.address && (
-                          <Badge variant="outline" className="w-full justify-start text-sm py-2 gap-2 px-3 font-normal">
-                            <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                            <span className="truncate">{selectedRecord.arrivalLocation!.address}</span>
-                          </Badge>
-                        )}
-                        <div className="flex gap-2 w-full">
-                          <Badge variant="secondary" className="font-mono text-xs text-gray-500 bg-gray-100 hover:bg-gray-100">
-                            Lat: {selectedRecord.arrivalLocation!.latitude}
-                          </Badge>
-                          <Badge variant="secondary" className="font-mono text-xs text-gray-500 bg-gray-100 hover:bg-gray-100">
-                            Lon: {selectedRecord.arrivalLocation!.longitude}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {isValidLocation(selectedRecord.leaveLocation) && (
-                    <div className="bg-white rounded-xl border border-blue-200 shadow-sm overflow-hidden">
-                      <div className="p-3 border-b border-gray-100 flex items-center gap-2 bg-blue-50/50">
-                        <MapPin className="w-4 h-4 text-blue-600" />
-                        <h4 className="font-semibold text-gray-900 text-sm">Çıxış Lokasiyası</h4>
-                      </div>
-
-                      <div className="aspect-video w-full bg-gray-100 relative">
-                        {/* Static Map Image */}
-                        <img
-                          src={`https://static-maps.yandex.ru/1.x/?ll=${selectedRecord.leaveLocation!.longitude},${selectedRecord.leaveLocation!.latitude}&z=17&l=map&size=600,300&pt=${selectedRecord.leaveLocation!.longitude},${selectedRecord.leaveLocation!.latitude},pm2blm`}
-                          alt="Çıxış xəritəsi"
-                          className="w-full h-full object-cover"
-                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                        />
-                      </div>
-
-                      <div className="p-4 flex flex-col gap-2">
-                        {selectedRecord.leaveLocation!.address && (
-                          <Badge variant="outline" className="w-full justify-start text-sm py-2 gap-2 px-3 font-normal">
-                            <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                            <span className="truncate">{selectedRecord.leaveLocation!.address}</span>
-                          </Badge>
-                        )}
-                        <div className="flex gap-2 w-full">
-                          <Badge variant="secondary" className="font-mono text-xs text-gray-500 bg-gray-100 hover:bg-gray-100">
-                            Lat: {selectedRecord.leaveLocation!.latitude}
-                          </Badge>
-                          <Badge variant="secondary" className="font-mono text-xs text-gray-500 bg-gray-100 hover:bg-gray-100">
-                            Lon: {selectedRecord.leaveLocation!.longitude}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div >
-      )
+          </div >
+        )
       }
     </div >
   );

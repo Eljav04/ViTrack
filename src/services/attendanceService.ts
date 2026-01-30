@@ -89,10 +89,10 @@ export const attendanceService = {
         }
 
         if (data.arrivalLatitude !== null && data.arrivalLatitude !== undefined) {
-            formData.append('ArrivalLatitude', data.arrivalLatitude.toString().replace('.', ','));
+            formData.append('ArrivalLatitude', String(data.arrivalLatitude));
         }
         if (data.arrivalLongitude !== null && data.arrivalLongitude !== undefined) {
-            formData.append('ArrivalLongitude', data.arrivalLongitude.toString().replace('.', ','));
+            formData.append('ArrivalLongitude', String(data.arrivalLongitude));
         }
 
         if (data.lateReason) {
@@ -100,6 +100,9 @@ export const attendanceService = {
         }
 
         const response = await api.post('/api/attendance-record/check-in', formData);
+
+        console.log(formData.get('ArrivalLatitude'));
+        console.log(response.data);
         return response.data;
     },
 
@@ -113,10 +116,10 @@ export const attendanceService = {
         }
 
         if (data.leaveLatitude !== null && data.leaveLatitude !== undefined) {
-            formData.append('LeaveLatitude', data.leaveLatitude.toString().replace('.', ','));
+            formData.append('LeaveLatitude', data.leaveLatitude.toString());
         }
         if (data.leaveLongitude !== null && data.leaveLongitude !== undefined) {
-            formData.append('LeaveLongitude', data.leaveLongitude.toString().replace('.', ','));
+            formData.append('LeaveLongitude', data.leaveLongitude.toString());
         }
 
         if (data.earlyLeaveReason) {
