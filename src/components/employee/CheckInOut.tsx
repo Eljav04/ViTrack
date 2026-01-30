@@ -553,7 +553,7 @@ export function CheckInOut({ type }: CheckInOutProps) {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px] resize-none disabled:bg-gray-50 pb-6"
                   placeholder="Şərh daxil edin..."
                 />
-                <div className="absolute bottom-2 right-2 text-xs text-gray-400">
+                <div className="absolute bottom mt-[-6px] right-2 text-sm text-gray-500">
                   {comment.length}/300
                 </div>
               </div>
@@ -570,7 +570,7 @@ export function CheckInOut({ type }: CheckInOutProps) {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-3 mt-4">
+              <div className="grid grid-cols-2 gap-3 mt-6">
                 <Button variant="outline" fullWidth onClick={handleSkipComment} disabled={isSubmitting}>
                   Keç
                 </Button>
