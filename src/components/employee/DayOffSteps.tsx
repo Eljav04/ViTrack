@@ -43,36 +43,39 @@ export function DayOffSteps({ onBack, onComplete }: DayOffStepsProps) {
     if (step === 'warning') {
         return (
             <div className="space-y-6">
-                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
-                    <div className="flex flex-col items-center text-center space-y-4">
-                        <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
-                            <AlertTriangle className="w-8 h-8 text-yellow-600" />
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-6">
+                        <div className="flex flex-col items-center text-center space-y-4">
+                            <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
+                                <AlertTriangle className="w-8 h-8 text-yellow-600" />
+                            </div>
+
+                            <h2 className="text-xl font-bold text-yellow-800">
+                                Diqqət!
+                            </h2>
+
+                            <p className="text-yellow-700 leading-relaxed">
+                                Bu bölmə sizin istirahət gününüzü qeyd etmək üçün nəzərdə tutulub.
+                                Əgər gəliş vaxtınızı qeyd etmək istəyirsinizsə, geri qayıdın və başqa bölmə seçin.
+                            </p>
                         </div>
+                    </div>
 
-                        <h2 className="text-xl font-bold text-yellow-800">
-                            Diqqət!
-                        </h2>
-
-                        <p className="text-yellow-700 leading-relaxed">
-                            Bu bölmə sizin istirahət gününüzü qeyd etmək üçün nəzərdə tutulub.
-                            Əgər gəliş vaxtınızı qeyd etmək istəyirsinizsə, geri qayıdın və başqa bölmə seçin.
-                        </p>
+                    <div className="grid grid-cols-2 gap-3">
+                        <Button variant="outline" onClick={onBack}>
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            Geri
+                        </Button>
+                        <Button
+                            className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                            onClick={handleWarningContinue}
+                        >
+                            Davam et
+                        </Button>
                     </div>
                 </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                    <Button variant="outline" onClick={onBack}>
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Geri
-                    </Button>
-                    <Button
-                        className="bg-yellow-600 hover:bg-yellow-700 text-white"
-                        onClick={handleWarningContinue}
-                    >
-                        Davam et
-                    </Button>
-                </div>
             </div>
+
         );
     }
 
