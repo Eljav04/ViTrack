@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, Calendar, User, LogIn, LogOut, CheckCircle } from 'lucide-react';
+import { Clock, Calendar, User, LogIn, LogOut, CheckCircle, Coffee } from 'lucide-react';
 import { currentUser, schedules } from '../../data/mockData';
 import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
@@ -24,7 +24,7 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
 
   // derive work status from backend today's record if available
   const workStatus = todayRecord
-    ? (todayRecord.leaveTime ? 'finished' : (todayRecord.arrivalTime ? 'at-work' : 'not-started'))
+    ? (todayRecord.isRest ? 'rest' : (todayRecord.leaveTime ? 'finished' : (todayRecord.arrivalTime ? 'at-work' : 'not-started')))
     : 'not-started';
 
   useEffect(() => {
@@ -53,6 +53,7 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
 
   const getRecordStatus = (rec: any): AttendanceStatus => {
     if (!rec) return 'waiting';
+    if (rec.isRest) return 'rest';
     const arrivalTime = rec?.arrivalTime ?? rec?.ArrivalTime ?? rec?.checkIn;
     if (!arrivalTime) return 'waiting';
 
@@ -79,6 +80,11 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
       label: 'Tamamlanıb',
       color: 'text-indigo-600',
       bgColor: 'bg-indigo-100',
+    },
+    rest: {
+      label: 'İstirahət',
+      color: 'text-green-700',
+      bgColor: 'bg-green-50',
     },
   };
 
@@ -143,6 +149,13 @@ export function EmployeeDashboard({ onLogout }: { onLogout: () => void }) {
               <div className="flex items-center justify-center gap-2 py-3 text-green-600">
                 <CheckCircle className="w-5 h-5" />
                 <span className="font-medium">İş günü başa çatdı</span>
+              </div>
+            )}
+
+            {workStatus === 'rest' && (
+              <div className="flex items-center justify-center gap-2 py-3 text-green-700">
+                <Coffee className="w-5 h-5" />
+                <span className="font-medium">İstirahət günü qeyd olunub</span>
               </div>
             )}
           </div>

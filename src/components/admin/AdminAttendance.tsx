@@ -100,6 +100,7 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
   };
 
   const getStatus = (record: AttendanceItem): AttendanceStatus => {
+    if (record.isRest) return 'rest';
     if (record.isLate && record.isEarlyLeave) return 'late-and-early';
     if (record.isLate) return 'late';
     if (record.isEarlyLeave) return 'early-leave';
@@ -270,7 +271,9 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                               <span className="text-sm font-medium text-gray-900">
                                 {formatTime(record.arrivalTime)}
                               </span>
-                              {record.isLate ? (
+                              {record.isRest ? (
+                                <StatusBadge status="rest" size="sm" />
+                              ) : record.isLate ? (
                                 <StatusBadge status="late" size="sm" />
                               ) : (
                                 <StatusBadge status="on-time" size="sm" />
@@ -282,8 +285,10 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                               <span className="text-sm font-medium text-gray-900">
                                 {formatTime(record.leaveTime)}
                               </span>
-                              {!record.leaveTime ? (
+                              {!record.leaveTime && !record.isRest ? (
                                 <StatusBadge status="waiting" size="sm" />
+                              ) : record.isRest ? (
+                                <span className="text-xs text-gray-400">—</span>
                               ) : record.isEarlyLeave ? (
                                 <StatusBadge status="early-leave" size="sm" />
                               ) : (

@@ -43,6 +43,7 @@ export function EmployeeHistory() {
 
   const getRecordStatus = (rec: AttendanceItem): AttendanceStatus => {
     if (!rec) return 'waiting';
+    if (rec.isRest) return 'rest';
     if (rec.isLate && rec.isEarlyLeave) return 'late-and-early';
     if (rec.isLate) return 'late';
     if (rec.isEarlyLeave) return 'early-leave';

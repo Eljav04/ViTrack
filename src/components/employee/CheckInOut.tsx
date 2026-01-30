@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, MapPin, QrCode, CheckCircle, AlertCircle, ArrowLeft, Check, RotateCcw, Loader2 } from 'lucide-react';
+import { Camera, MapPin, QrCode, CheckCircle, AlertCircle, ArrowLeft, Check, RotateCcw, Loader2, Coffee } from 'lucide-react';
 import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
 import { useAppDispatch } from '../../store/hooks';
@@ -134,7 +134,7 @@ export function CheckInOut({ type }: CheckInOutProps) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Calculate source dimensions to crop a square from the center
+    // Calculate source dimensions to crop a square from the source video
     const videoAspect = video.videoWidth / video.videoHeight;
     let sWidth, sHeight, sx, sy;
 
@@ -152,7 +152,7 @@ export function CheckInOut({ type }: CheckInOutProps) {
       sy = (video.videoHeight - sHeight) / 2;
     }
 
-    // Draw scanned area to 480x480 canvas
+    // Draw cropped area to 480x480 canvas
     ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, 480, 480);
 
     const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
@@ -298,24 +298,6 @@ export function CheckInOut({ type }: CheckInOutProps) {
 
               <div className="space-y-3">
                 <button
-                  disabled={true}
-                  className={cn(
-                    "w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-lg transition-all opacity-60 cursor-not-allowed bg-gray-50"
-                  )}
-                >
-                  <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <QrCode className="w-6 h-6 text-gray-500" />
-                  </div>
-                  <div className="text-left flex-1">
-                    <div className="flex justify-between items-center">
-                      <p className="font-medium text-gray-900">QR Kod Skan</p>
-                      <span className="text-xs font-medium bg-gray-200 text-gray-600 px-2 py-1 rounded">Tezliklə</span>
-                    </div>
-                    <p className="text-sm text-gray-600">Sürətli və təsdiqlənmiş</p>
-                  </div>
-                </button>
-
-                <button
                   onClick={() => {
                     setUseQR(false);
                     handleGetLocation();
@@ -331,6 +313,36 @@ export function CheckInOut({ type }: CheckInOutProps) {
                   <div className="text-left flex-1">
                     <p className="font-medium text-gray-900">Şəkil + Yer</p>
                     <p className="text-sm text-gray-600">Standart yoxlama</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => navigate('/employee/day-off')}
+                  disabled={type === 'out'}
+                  className={cn(
+                    "w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-lg transition-all",
+                    type === 'out'
+                      ? "opacity-60 cursor-not-allowed bg-gray-50"
+                      : "hover:border-yellow-500 hover:bg-yellow-50"
+                  )}
+                >
+                  <div className={cn(
+                    "w-12 h-12 rounded-lg flex items-center justify-center",
+                    type === 'out' ? "bg-gray-200" : "bg-yellow-100"
+                  )}>
+                    <Coffee className={cn(
+                      "w-6 h-6",
+                      type === 'out' ? "text-gray-500" : "text-yellow-600"
+                    )} />
+                  </div>
+                  <div className="text-left flex-1">
+                    <div className="flex justify-between items-center">
+                      <p className="font-medium text-gray-900">İstirahət gününü qeyd</p>
+                      {type === 'out' && (
+                        <span className="text-xs font-medium bg-gray-200 text-gray-600 px-2 py-1 rounded">Deaktiv</span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600">İstirahət günü statusu</p>
                   </div>
                 </button>
               </div>

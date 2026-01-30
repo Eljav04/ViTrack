@@ -9,6 +9,7 @@ import { EmployeeDashboard } from './components/employee/EmployeeDashboard';
 import { EmployeeHistory } from './components/employee/EmployeeHistory';
 import { EmployeeProfile } from './components/employee/EmployeeProfile';
 import { CheckInOut } from './components/employee/CheckInOut';
+import { DayOffPage } from './components/employee/DayOffPage';
 
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { AdminAttendance } from './components/admin/AdminAttendance';
@@ -58,6 +59,11 @@ export default function App() {
           <Route path="/employee/check-out" element={
             <ProtectedRoute allowedRoles={['User']}>
               <CheckInOut type="out" />
+            </ProtectedRoute>
+          } />
+          <Route path="/employee/day-off" element={
+            <ProtectedRoute allowedRoles={['User']}>
+              <DayOffPage />
             </ProtectedRoute>
           } />
           <Route path="/employee/history" element={
