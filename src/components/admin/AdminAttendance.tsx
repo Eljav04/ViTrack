@@ -424,33 +424,32 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                       </div>
 
                       {selectedRecord.arrivalImage ? (
-                        <div className="space-y-2">
-                          <div className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 aspect-square flex items-center justify-center">
-                            <img
-                              src={getImageUrl(selectedRecord.arrivalImage)}
-                              alt="Arrival"
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                // Instead of external placeholder, we can use a local fallback UI
-                                e.currentTarget.style.display = 'none';
-                                const parent = e.currentTarget.parentElement;
-                                if (parent) {
-                                  parent.innerHTML = '<div class="flex flex-col items-center text-gray-400 p-4"><svg class="w-12 h-12 mb-2 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><span class="text-xs">Şəkil yüklənmədi</span></div>';
-                                }
-                              }}
-                            />
-                          </div>
-                          {selectedRecord.lateReason && (
-                            <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
-                              <p className="text-xs text-emerald-600 font-medium mb-1">Qeyd:</p>
-                              <p className="text-sm text-emerald-800">{selectedRecord.lateReason}</p>
-                            </div>
-                          )}
+                        <div className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 aspect-square flex items-center justify-center">
+                          <img
+                            src={getImageUrl(selectedRecord.arrivalImage)}
+                            alt="Arrival"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              // Instead of external placeholder, we can use a local fallback UI
+                              e.currentTarget.style.display = 'none';
+                              const parent = e.currentTarget.parentElement;
+                              if (parent) {
+                                parent.innerHTML = '<div class="flex flex-col items-center text-gray-400 p-4"><svg class="w-12 h-12 mb-2 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><span class="text-xs">Şəkil yüklənmədi</span></div>';
+                              }
+                            }}
+                          />
                         </div>
                       ) : (
                         <div className="aspect-square bg-gray-50 rounded-lg flex flex-col items-center justify-center text-gray-400 text-sm border border-dashed border-gray-200">
                           <Camera className="w-8 h-8 mb-2 opacity-20" />
                           Şəkil yoxdur
+                        </div>
+                      )}
+
+                      {selectedRecord.lateReason && (
+                        <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
+                          <p className="text-xs text-emerald-600 font-medium mb-1">Qeyd:</p>
+                          <p className="text-sm text-emerald-800 wrap-break-word">{selectedRecord.lateReason}</p>
                         </div>
                       )}
                     </div>
@@ -473,32 +472,31 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                       </div>
 
                       {selectedRecord.leaveImage ? (
-                        <div className="space-y-2">
-                          <div className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 aspect-square flex items-center justify-center">
-                            <img
-                              src={getImageUrl(selectedRecord.leaveImage)}
-                              alt="Leave"
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                                const parent = e.currentTarget.parentElement;
-                                if (parent) {
-                                  parent.innerHTML = '<div class="flex flex-col items-center text-gray-400 p-4"><svg class="w-12 h-12 mb-2 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><span class="text-xs">Şəkil yüklənmədi</span></div>';
-                                }
-                              }}
-                            />
-                          </div>
-                          {selectedRecord.earlyLeaveReason && (
-                            <div className="bg-sky-50 p-3 rounded-lg border border-sky-100">
-                              <p className="text-xs text-sky-600 font-medium mb-1">Qeyd:</p>
-                              <p className="text-sm text-sky-800">{selectedRecord.earlyLeaveReason}</p>
-                            </div>
-                          )}
+                        <div className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 aspect-square flex items-center justify-center">
+                          <img
+                            src={getImageUrl(selectedRecord.leaveImage)}
+                            alt="Leave"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              const parent = e.currentTarget.parentElement;
+                              if (parent) {
+                                parent.innerHTML = '<div class="flex flex-col items-center text-gray-400 p-4"><svg class="w-12 h-12 mb-2 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><span class="text-xs">Şəkil yüklənmədi</span></div>';
+                              }
+                            }}
+                          />
                         </div>
                       ) : (
                         <div className="aspect-square bg-gray-50 rounded-lg flex flex-col items-center justify-center text-gray-400 text-sm border border-dashed border-gray-200">
                           <Camera className="w-8 h-8 mb-2 opacity-20" />
                           Şəkil yoxdur
+                        </div>
+                      )}
+
+                      {selectedRecord.earlyLeaveReason && (
+                        <div className="bg-sky-50 p-3 rounded-lg border border-sky-100">
+                          <p className="text-xs text-sky-600 font-medium mb-1">Qeyd:</p>
+                          <p className="text-sm text-sky-800 wrap-break-word">{selectedRecord.earlyLeaveReason}</p>
                         </div>
                       )}
                     </div>

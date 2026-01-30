@@ -19,13 +19,13 @@ export default defineConfig({
     server: {
         port: 5173,
         host: true,
-        proxy: {
-            '/api': {
-                target: 'https://vitrack.paybir.az',
-                changeOrigin: true,
-                secure: true,
-                rewrite: (path) => path.replace(/^\/api/, ''),
-            },
-        },
+        // proxy: {
+        //     '/api': {
+        //         target: 'https://vitrack.paybir.az',
+        //         changeOrigin: true,
+        //         secure: true,
+        //         rewrite: (path) => path.replace(/^\/api/, ''),
+        //     },
+        // },
     },
 })
