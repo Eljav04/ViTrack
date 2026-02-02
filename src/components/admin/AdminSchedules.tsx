@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { formatMinutesToHoursMinutesLong, formatTimeHHMMString } from '../../lib/timeUtils';
 import { Plus, Edit2, X, Clock, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { AdminNav } from './AdminNav';
@@ -9,6 +10,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '../ui/tooltip';
 
 // Zod Schema
 const scheduleSchema = z.object({
@@ -22,6 +24,8 @@ type ScheduleFormValues = z.infer<typeof scheduleSchema>;
 export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
   const dispatch = useDispatch<AppDispatch>();
   const { items: schedules, loading } = useSelector((state: RootState) => state.workSchedules);
+  const { user: currentUser } = useSelector((state: RootState) => state.auth);
+  const isBoss = currentUser?.role === 'Boss';
 
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -108,15 +112,7 @@ export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
     }
   };
 
-  // Helper to calculate hours difference
-  const calculateDuration = (start: string, end: string) => {
-    if (!start || !end) return 0;
-    const [startH, startM] = start.split(':').map(Number);
-    const [endH, endM] = end.split(':').map(Number);
-    let diff = (endH * 60 + endM) - (startH * 60 + startM);
-    if (diff < 0) diff += 24 * 60;
-    return (diff / 60).toFixed(1);
-  };
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -140,7 +136,7 @@ export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
             {schedules.map(schedule => {
-              const duration = calculateDuration(schedule.startTime, schedule.endTime);
+
 
               return (
                 <div
@@ -166,13 +162,23 @@ export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button
-                        onClick={() => handleDelete(schedule.id)}
-                        className="p-2 hover:bg-red-50 rounded-lg text-red-600"
-                        title="Sil"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => !isBoss && handleDelete(schedule.id)}
+                              className={`p-2 rounded-lg transition-colors ${isBoss ? "opacity-50 cursor-not-allowed" : "hover:bg-red-50"}`}
+                            >
+                              <Trash2 className="w-4 h-4 text-red-600" />
+                            </button>
+                          </TooltipTrigger>
+                          {isBoss && (
+                            <TooltipContent>
+                              <p>Bu əməliyyat üçün administrator icazəsi lazımdır</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </div>
 
@@ -180,21 +186,21 @@ export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
                     <div className="flex items-center justify-between py-2 border-t border-gray-100">
                       <span className="text-sm text-gray-600">Başlama Vaxtı</span>
                       <span className="text-lg font-semibold text-gray-900">
-                        {schedule.startTime}
+                        {formatTimeHHMMString(schedule.startTime)}
                       </span>
                     </div>
 
                     <div className="flex items-center justify-between py-2 border-t border-gray-100">
                       <span className="text-sm text-gray-600">Bitmə Vaxtı</span>
                       <span className="text-lg font-semibold text-gray-900">
-                        {schedule.endTime}
+                        {formatTimeHHMMString(schedule.endTime)}
                       </span>
                     </div>
 
                     <div className="flex items-center justify-between py-2 border-t border-gray-100">
                       <span className="text-sm text-gray-600">İş Saatları</span>
                       <span className="text-lg font-semibold text-gray-900">
-                        {duration} saat
+                        {formatMinutesToHoursMinutesLong(schedule.durationMinutes)}
                       </span>
                     </div>
                   </div>

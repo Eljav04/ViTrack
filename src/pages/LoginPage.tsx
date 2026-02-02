@@ -44,7 +44,7 @@ export function LoginPage() {
 
     useEffect(() => {
         if (isAuthenticated && user) {
-            if (user.role === 'Admin') {
+            if (user.role === 'Admin' || user.role === 'Boss') {
                 navigate('/admin');
             } else {
                 navigate('/employee');
@@ -58,8 +58,8 @@ export function LoginPage() {
 
             if (login.fulfilled.match(resultAction)) {
                 const user = resultAction.payload;
-                const role = user.role === 'Admin' ? 'admin' : 'employee';
-                toast.success(role === 'admin' ? 'Admin kimi daxil oldunuz' : 'İşçi kimi daxil oldunuz');
+                const isAdminOrBoss = user.role === 'Admin' || user.role === 'Boss';
+                toast.success(isAdminOrBoss ? 'Admin kimi daxil oldunuz' : 'İşçi kimi daxil oldunuz');
                 // Navigation will happen via useEffect when state updates
             } else {
                 const errorData: any = resultAction.payload;

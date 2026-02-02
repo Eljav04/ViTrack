@@ -5,7 +5,7 @@ export interface User {
     firstname: string;
     lastname: string;
     login: string; // username/email
-    role: 'Admin' | 'User';
+    role: 'Admin' | 'User' | 'Boss';
     department?: {
         id: number;
         name: string;
@@ -24,7 +24,7 @@ export interface CreateUserDTO {
     firstname: string;
     lastname: string;
     password: string;
-    role: 'User' | 'Admin';
+    role: 'User' | 'Admin' | 'Boss';
 }
 
 export interface UpdateUserDTO {

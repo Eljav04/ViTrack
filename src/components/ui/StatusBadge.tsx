@@ -1,6 +1,6 @@
-import { CheckCircle, Clock, LogOut, XCircle, AlertCircle, HelpCircle } from 'lucide-react';
+import { CheckCircle, Clock, LogOut, XCircle, AlertCircle, HelpCircle, Coffee } from 'lucide-react';
 
-export type AttendanceStatus = 'waiting' | 'on-time' | 'late' | 'early-leave' | 'late-and-early' | 'absent';
+export type AttendanceStatus = 'waiting' | 'on-time' | 'late' | 'early-leave' | 'late-and-early' | 'absent' | 'rest';
 
 interface StatusBadgeProps {
   status: AttendanceStatus;
@@ -44,6 +44,12 @@ export function StatusBadge({ status, size = 'md' }: StatusBadgeProps) {
       text: 'text-red-700',
       label: 'İşə gəlmədi',
       icon: XCircle,
+    },
+    rest: {
+      bg: 'bg-green-50',
+      text: 'text-green-700',
+      label: 'İstirahət',
+      icon: Coffee,
     },
   };
 

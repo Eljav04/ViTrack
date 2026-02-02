@@ -9,6 +9,7 @@ import { EmployeeDashboard } from './components/employee/EmployeeDashboard';
 import { EmployeeHistory } from './components/employee/EmployeeHistory';
 import { EmployeeProfile } from './components/employee/EmployeeProfile';
 import { CheckInOut } from './components/employee/CheckInOut';
+import { DayOffPage } from './components/employee/DayOffPage';
 
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { AdminAttendance } from './components/admin/AdminAttendance';
@@ -17,7 +18,7 @@ import { AdminSchedules } from './components/admin/AdminSchedules';
 import { AdminDepartments } from './components/admin/AdminDepartments';
 import { AdminProfile } from './components/admin/AdminProfile';
 
-export type UserRole = 'employee' | 'admin' | null;
+export type UserRole = 'employee' | 'admin' | 'boss' | null;
 
 import { Toaster } from 'sonner';
 
@@ -60,6 +61,11 @@ export default function App() {
               <CheckInOut type="out" />
             </ProtectedRoute>
           } />
+          <Route path="/employee/day-off" element={
+            <ProtectedRoute allowedRoles={['User']}>
+              <DayOffPage />
+            </ProtectedRoute>
+          } />
           <Route path="/employee/history" element={
             <ProtectedRoute allowedRoles={['User']}>
               <EmployeeHistory />
@@ -73,32 +79,32 @@ export default function App() {
 
           {/* Admin Routes */}
           <Route path="/admin" element={
-            <ProtectedRoute allowedRoles={['Admin']}>
+            <ProtectedRoute allowedRoles={['Admin', 'Boss']}>
               <AdminDashboard onLogout={handleLogout} />
             </ProtectedRoute>
           } />
           <Route path="/admin/attendance" element={
-            <ProtectedRoute allowedRoles={['Admin']}>
+            <ProtectedRoute allowedRoles={['Admin', 'Boss']}>
               <AdminAttendance onLogout={handleLogout} />
             </ProtectedRoute>
           } />
           <Route path="/admin/employees" element={
-            <ProtectedRoute allowedRoles={['Admin']}>
+            <ProtectedRoute allowedRoles={['Admin', 'Boss']}>
               <AdminEmployees onLogout={handleLogout} />
             </ProtectedRoute>
           } />
           <Route path="/admin/schedules" element={
-            <ProtectedRoute allowedRoles={['Admin']}>
+            <ProtectedRoute allowedRoles={['Admin', 'Boss']}>
               <AdminSchedules onLogout={handleLogout} />
             </ProtectedRoute>
           } />
           <Route path="/admin/departments" element={
-            <ProtectedRoute allowedRoles={['Admin']}>
+            <ProtectedRoute allowedRoles={['Admin', 'Boss']}>
               <AdminDepartments onLogout={handleLogout} />
             </ProtectedRoute>
           } />
           <Route path="/admin/profile" element={
-            <ProtectedRoute allowedRoles={['Admin']}>
+            <ProtectedRoute allowedRoles={['Admin', 'Boss']}>
               <AdminProfile onLogout={handleLogout} />
             </ProtectedRoute>
           } />

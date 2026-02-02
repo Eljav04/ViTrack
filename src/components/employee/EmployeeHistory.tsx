@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Camera, MessageSquare, ChevronRight, AlertCircle, CheckCircle } from 'lucide-react';
+import { MapPin, Camera, MessageSquare, ChevronRight, AlertCircle, CheckCircle, Clock, ArrowUp, ArrowDown } from 'lucide-react';
 import { attendanceService, AttendanceItem, MetaData } from '../../services/attendanceService';
 import { StatusBadge, AttendanceStatus } from '../ui/StatusBadge';
 import { EmployeeNav } from './EmployeeNav';
+import { formatMinutesToHoursMinutesShort } from '../../lib/timeUtils';
 import {
   Pagination,
   PaginationContent,
@@ -43,6 +44,7 @@ export function EmployeeHistory() {
 
   const getRecordStatus = (rec: AttendanceItem): AttendanceStatus => {
     if (!rec) return 'waiting';
+    if (rec.isRest) return 'rest';
     if (rec.isLate && rec.isEarlyLeave) return 'late-and-early';
     if (rec.isLate) return 'late';
     if (rec.isEarlyLeave) return 'early-leave';
@@ -67,7 +69,7 @@ export function EmployeeHistory() {
     }
   };
 
-  const formatTime = (timeStr: string | null) => {
+  const formatTime = (timeStr: string | null | undefined) => {
     if (!timeStr) return '—';
     try {
       return timeStr.substring(0, 5);
@@ -192,6 +194,19 @@ export function EmployeeHistory() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <StatusBadge status={getRecordStatus(record)} size="sm" />
+                        <span className="text-sm text-gray-500 font-mono ml-2 border-l pl-2">
+                          {formatMinutesToHoursMinutesShort(record.attendanceDurationMinutes)}
+                        </span>
+                        <div className="flex items-center ml-2 border-l pl-2">
+                          {record.overtimeMinutes !== 0 && (
+                            <>
+                              <span className={`text-xs font-semibold ${record.overtimeMinutes > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {formatMinutesToHoursMinutesShort(record.overtimeMinutes)}
+                              </span>
+                              {record.overtimeMinutes > 0 ? <ArrowUp className="w-3 h-3 text-green-600" /> : <ArrowDown className="w-3 h-3 text-red-600" />}
+                            </>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-1.5">
@@ -275,6 +290,34 @@ export function EmployeeHistory() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2 bg-gray-50 p-3 rounded-lg flex justify-between items-center">
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase">Gözlənilən</p>
+                    <p className="font-medium text-sm flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {formatTime(selectedRecord.employee?.workStartTime)} - {formatTime(selectedRecord.employee?.workEndTime)}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-gray-500 uppercase">Faktiki / Overtime</p>
+                    <div className="flex items-center justify-end gap-2">
+                      <span className="font-mono font-semibold">{formatMinutesToHoursMinutesShort(selectedRecord.attendanceDurationMinutes)}</span>
+
+                      {(selectedRecord.overtimeMinutes !== 0) && (
+                        <div className="flex items-center gap-0.5 bg-white px-1.5 py-0.5 rounded border shadow-sm">
+                          <span className={`text-xs font-bold ${selectedRecord.overtimeMinutes > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {formatMinutesToHoursMinutesShort(selectedRecord.overtimeMinutes)}
+                          </span>
+                          {selectedRecord.overtimeMinutes > 0 ?
+                            <ArrowUp className="w-3 h-3 text-green-600" /> :
+                            <ArrowDown className="w-3 h-3 text-red-600" />
+                          }
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <p className="text-xs text-gray-600 mb-1">Giriş</p>
                   <p className="text-lg font-semibold text-gray-900">

@@ -5,6 +5,8 @@ export interface Employee {
     firstname: string;
     lastname: string;
     departmentName: string;
+    workStartTime?: string;
+    workEndTime?: string;
 }
 
 export interface Location {
@@ -31,6 +33,10 @@ export interface AttendanceItem {
     earlyLeaveReason: string | null;
     isLate: boolean;
     isEarlyLeave: boolean;
+    isAbsent: boolean;
+    isRest: boolean;
+    attendanceDurationMinutes: number;
+    overtimeMinutes: number;
     createdAt: string;
     updatedAt: string;
 }
@@ -129,4 +135,15 @@ export const attendanceService = {
         const response = await api.post('/api/attendance-record/check-out', formData);
         return response.data;
     },
+
+    setDayOff: async (reason?: string) => {
+        const formData = new FormData();
+        if (reason) {
+            formData.append('reason', reason);
+        }
+        // If the backend expects form-data for Reason, we use FormData. 
+        // Based on [FromForm] DayOffRequest request in snippet.
+        const response = await api.post('/api/attendance-record/set-day-off', formData);
+        return response.data;
+    }
 };

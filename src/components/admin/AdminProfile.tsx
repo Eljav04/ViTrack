@@ -29,7 +29,7 @@ export function AdminProfile({ onLogout }: { onLogout: () => void }) {
               />
               <div>
                 <h3 className="text-xl font-semibold text-gray-900">{user.firstname} {user.lastname}</h3>
-                <p className="text-sm text-gray-600">{user.role === 'User' ? 'İşçi' : 'Administrator'}</p>
+                <p className="text-sm text-gray-600">{user.role === 'User' ? 'İşçi' : user.role === 'Boss' ? 'Direktor' : 'Administrator'}</p>
               </div>
             </div>
 
@@ -50,7 +50,7 @@ export function AdminProfile({ onLogout }: { onLogout: () => void }) {
                 </div>
                 <div>
                   <p className="text-xs text-gray-600">Rol</p>
-                  <p className="text-sm font-medium text-gray-900">{user.role === 'User' ? 'İşçi' : 'Administrator'}</p>
+                  <p className="text-sm font-medium text-gray-900">{user.role === 'User' ? 'İşçi' : user.role === 'Boss' ? 'Direktor' : 'Administrator'}</p>
                 </div>
               </div>
 

@@ -9,6 +9,7 @@ import { AdminNav } from './AdminNav';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchDepartments, createDepartment, updateDepartment, deleteDepartment, Department } from '../../store/departmentSlice';
 import { toast, Toaster } from 'sonner';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '../ui/tooltip';
 
 const departmentSchema = z.object({
   name: z.string().min(1, 'Şöbənin adı tələb olunur'),
@@ -20,6 +21,8 @@ type DepartmentFormData = z.infer<typeof departmentSchema>;
 export function AdminDepartments({ onLogout }: { onLogout: () => void }) {
   const dispatch = useAppDispatch();
   const { items: departments, isLoading } = useAppSelector((state) => state.departments);
+  const { user: currentUser } = useAppSelector((state) => state.auth);
+  const isBoss = currentUser?.role === 'Boss';
   const [showModal, setShowModal] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
@@ -151,12 +154,23 @@ export function AdminDepartments({ onLogout }: { onLogout: () => void }) {
                     >
                       <Edit2 className="w-4 h-4 text-gray-600" />
                     </button>
-                    <button
-                      onClick={() => handleDelete(department.id)}
-                      className="p-2 hover:bg-red-50 rounded-lg"
-                    >
-                      <Trash2 className="w-4 h-4 text-red-600" />
-                    </button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => !isBoss && handleDelete(department.id)}
+                            className={`p-2 rounded-lg transition-colors ${isBoss ? "opacity-50 cursor-not-allowed" : "hover:bg-red-50"}`}
+                          >
+                            <Trash2 className="w-4 h-4 text-red-600" />
+                          </button>
+                        </TooltipTrigger>
+                        {isBoss && (
+                          <TooltipContent>
+                            <p>Bu əməliyyat üçün administrator icazəsi lazımdır</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </div>
 

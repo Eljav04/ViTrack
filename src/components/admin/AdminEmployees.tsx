@@ -12,6 +12,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '../ui/tooltip';
 
 // Zod schema for User creation (Registr)
 import { fetchDepartments } from '../../store/departmentSlice';
@@ -33,7 +34,7 @@ const createUserSchema = z.object({
     .min(5, 'Login ən azı 5 simvol olmalıdır')
     .max(100, 'Login ən çox 100 simvol ola bilər'),
   password: z.string().min(4, 'Şifrə ən azı 4 simvol olmalıdır'),
-  role: z.enum(['User', 'Admin']),
+  role: z.enum(['User', 'Admin', 'Boss']),
 });
 
 // Schema for Editing a User (Password is optional/handled separately)
@@ -66,6 +67,8 @@ type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 export function AdminEmployees({ onLogout }: { onLogout: () => void }) {
   const dispatch = useDispatch<AppDispatch>();
   const { items: users, loading } = useSelector((state: RootState) => state.users);
+  const { user: currentUser } = useAppSelector((state) => state.auth);
+  const isBoss = currentUser?.role === 'Boss';
 
   // Need departments and schedules for the select dropdowns
   const { items: departments } = useSelector((state: RootState) => state.departments);
@@ -362,147 +365,183 @@ export function AdminEmployees({ onLogout }: { onLogout: () => void }) {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ad
-                  </label>
-                  <input
-                    type="text"
-                    {...register('firstname')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Ad"
-                  />
-                  {/* @ts-ignore */}
-                  {errors.firstname && <p className="text-red-500 text-xs mt-1">{errors.firstname.message}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Soyad
-                  </label>
-                  <input
-                    type="text"
-                    {...register('lastname')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Soyad"
-                  />
-                  {/* @ts-ignore */}
-                  {errors.lastname && <p className="text-red-500 text-xs mt-1">{errors.lastname.message}</p>}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Login
-                </label>
-                <input
-                  type="text"
-                  {...register('login')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Login daxil edin"
-                />
-                {/* @ts-ignore */}
-                {errors.login && <p className="text-red-500 text-xs mt-1">{errors.login.message}</p>}
-              </div>
-
-              {/* Password field only for CREATE mode */}
-              {modalMode === 'create' && (
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Şifrə
-                    </label>
-                    <input
-                      type="password"
-                      {...register('password')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="••••••"
-                    />
-                    {/* @ts-ignore */}
-                    {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
-                  </div>
-                </div>
-              )}
-
-              {/* Department and Schedule Selects (Available in Edit for now, or Create if backend supported it but notes said no) */}
-              {/* Note said: "Qeyd: Şöbə, Vəzifə və İş Cədvəli yaradıldıqdan sonra təyin olunmalıdır." */}
-              {/* So we show these preferentially in EDIT mode. */}
-
-              {modalMode === 'edit' && (
+            <TooltipProvider>
+              <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Şöbə
+                      Ad
                     </label>
-                    <select
-                      {...register('departmentId')}
+                    <input
+                      type="text"
+                      {...register('firstname')}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Seçin...</option>
-                      {departments.map(dept => (
-                        <option key={dept.id} value={dept.id}>{dept.name}</option>
-                      ))}
-                    </select>
+                      placeholder="Ad"
+                    />
+                    {/* @ts-ignore */}
+                    {errors.firstname && <p className="text-red-500 text-xs mt-1">{errors.firstname.message}</p>}
                   </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      İş Cədvəli
+                      Soyad
                     </label>
-                    <select
-                      {...register('workScheduleId')}
+                    <input
+                      type="text"
+                      {...register('lastname')}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Seçin...</option>
-                      {schedules.map(sch => (
-                        <option key={sch.id} value={sch.id}>{sch.name} ({sch.startTime}-{sch.endTime})</option>
-                      ))}
-                    </select>
+                      placeholder="Soyad"
+                    />
+                    {/* @ts-ignore */}
+                    {errors.lastname && <p className="text-red-500 text-xs mt-1">{errors.lastname.message}</p>}
                   </div>
                 </div>
-              )}
 
-              {modalMode === 'create' && (
-                <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200 text-xs text-yellow-800">
-                  Qeyd: Şöbə və İş Cədvəli yaradıldıqdan sonra "Düzəliş Et" bölməsindən təyin olunmalıdır.
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Login
+                  </label>
+                  <input
+                    type="text"
+                    {...register('login')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Login daxil edin"
+                  />
+                  {/* @ts-ignore */}
+                  {errors.login && <p className="text-red-500 text-xs mt-1">{errors.login.message}</p>}
                 </div>
-              )}
 
-              <div className="flex gap-3 pt-4 border-t border-gray-200 items-center">
-                {/* Delete Button (Only in Edit Mode) */}
-                {modalMode === 'edit' && (
-                  <Button variant="danger" type="button" onClick={handleDeleteClick}>
-                    <Trash2 className="w-4 h-4" />
-                    Sil
-                  </Button>
+                {/* Password field only for CREATE mode */}
+                {modalMode === 'create' && (
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Şifrə
+                      </label>
+                      <input
+                        type="password"
+                        {...register('password')}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="••••••"
+                      />
+                      {/* @ts-ignore */}
+                      {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
+                    </div>
+                  </div>
                 )}
 
-                {/* Change Password Button (Only in Edit Mode) */}
+                {/* Department and Schedule Selects (Available in Edit for now, or Create if backend supported it but notes said no) */}
+                {/* Note said: "Qeyd: Şöbə, Vəzifə və İş Cədvəli yaradıldıqdan sonra təyin olunmalıdır." */}
+                {/* So we show these preferentially in EDIT mode. */}
+
                 {modalMode === 'edit' && (
-                  <Button variant="outline" className="text-yellow-700 bg-yellow-50 border-yellow-200 hover:bg-yellow-100 hover:text-yellow-800" type="button" onClick={onChangePasswordClick}>
-                    <KeyRound className="w-4 h-4 mr-2" />
-                    Parolu dəyiş
-                  </Button>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Şöbə
+                      </label>
+                      <select
+                        {...register('departmentId')}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Seçin...</option>
+                        {departments.map(dept => (
+                          <option key={dept.id} value={dept.id}>{dept.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        İş Cədvəli
+                      </label>
+                      <select
+                        {...register('workScheduleId')}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Seçin...</option>
+                        {schedules.map(sch => (
+                          <option key={sch.id} value={sch.id}>{sch.name} ({sch.startTime}-{sch.endTime})</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 )}
 
-                <div className="flex-1"></div> {/* Spacer */}
+                {modalMode === 'create' && (
+                  <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200 text-xs text-yellow-800">
+                    Qeyd: Şöbə və İş Cədvəli yaradıldıqdan sonra "Düzəliş Et" bölməsindən təyin olunmalıdır.
+                  </div>
+                )}
 
-                <Button variant="outline" onClick={handleClose} type="button">
-                  Ləğv Et
-                </Button>
-                <Button variant="primary" type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Gözləyin...
-                    </>
-                  ) : (
-                    modalMode === 'create' ? 'Əlavə Et' : 'Yadda Saxla'
+                <div className="flex gap-3 pt-4 border-t border-gray-200 items-center">
+                  {/* Delete Button (Only in Edit Mode) */}
+                  {modalMode === 'edit' && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <Button
+                            variant="danger"
+                            type="button"
+                            onClick={handleDeleteClick}
+                            disabled={isBoss}
+                            className={isBoss ? "opacity-50 cursor-not-allowed" : ""}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Sil
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      {isBoss && (
+                        <TooltipContent>
+                          <p>Bu əməliyyat üçün administrator icazəsi lazımdır</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
                   )}
-                </Button>
-              </div>
-            </form>
+
+                  {/* Change Password Button (Only in Edit Mode) */}
+                  {modalMode === 'edit' && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <Button
+                            variant="outline"
+                            className={`text-yellow-700 bg-yellow-50 border-yellow-200 hover:bg-yellow-100 hover:text-yellow-800 ${isBoss ? "opacity-50 cursor-not-allowed" : ""}`}
+                            type="button"
+                            onClick={onChangePasswordClick}
+                            disabled={isBoss}
+                          >
+                            <KeyRound className="w-4 h-4 mr-2" />
+                            Parolu dəyiş
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      {isBoss && (
+                        <TooltipContent>
+                          <p>Bu əməliyyat üçün administrator icazəsi lazımdır</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  )}
+
+                  <div className="flex-1"></div> {/* Spacer */}
+
+                  <Button variant="outline" onClick={handleClose} type="button">
+                    Ləğv Et
+                  </Button>
+                  <Button variant="primary" type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Gözləyin...
+                      </>
+                    ) : (
+                      modalMode === 'create' ? 'Əlavə Et' : 'Yadda Saxla'
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </TooltipProvider>
 
             {/* Nested Delete Confirmation (Overlay) */}
             {showDeleteConfirm && (
