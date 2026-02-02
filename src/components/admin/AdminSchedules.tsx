@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { formatMinutesToHoursMinutesLong, formatTimeHHMMString } from '../../lib/timeUtils';
 import { Plus, Edit2, X, Clock, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { AdminNav } from './AdminNav';
@@ -111,15 +112,7 @@ export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
     }
   };
 
-  // Helper to calculate hours difference
-  const calculateDuration = (start: string, end: string) => {
-    if (!start || !end) return 0;
-    const [startH, startM] = start.split(':').map(Number);
-    const [endH, endM] = end.split(':').map(Number);
-    let diff = (endH * 60 + endM) - (startH * 60 + startM);
-    if (diff < 0) diff += 24 * 60;
-    return (diff / 60).toFixed(1);
-  };
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -143,7 +136,7 @@ export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
             {schedules.map(schedule => {
-              const duration = calculateDuration(schedule.startTime, schedule.endTime);
+
 
               return (
                 <div
@@ -193,21 +186,21 @@ export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
                     <div className="flex items-center justify-between py-2 border-t border-gray-100">
                       <span className="text-sm text-gray-600">Başlama Vaxtı</span>
                       <span className="text-lg font-semibold text-gray-900">
-                        {schedule.startTime}
+                        {formatTimeHHMMString(schedule.startTime)}
                       </span>
                     </div>
 
                     <div className="flex items-center justify-between py-2 border-t border-gray-100">
                       <span className="text-sm text-gray-600">Bitmə Vaxtı</span>
                       <span className="text-lg font-semibold text-gray-900">
-                        {schedule.endTime}
+                        {formatTimeHHMMString(schedule.endTime)}
                       </span>
                     </div>
 
                     <div className="flex items-center justify-between py-2 border-t border-gray-100">
                       <span className="text-sm text-gray-600">İş Saatları</span>
                       <span className="text-lg font-semibold text-gray-900">
-                        {duration} saat
+                        {formatMinutesToHoursMinutesLong(schedule.durationMinutes)}
                       </span>
                     </div>
                   </div>

@@ -5,6 +5,7 @@ export interface WorkSchedule {
     name: string;
     startTime: string;
     endTime: string;
+    durationMinutes: number;
 }
 
 export interface CreateWorkScheduleDTO {

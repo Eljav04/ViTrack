@@ -1,5 +1,6 @@
 import { useState, useEffect, Fragment } from 'react';
-import { Search, Camera, MapPin, MessageSquare, X, ChevronLeft, ChevronRight, Clock, AlertCircle } from 'lucide-react';
+import { Search, Camera, MapPin, MessageSquare, X, ChevronLeft, ChevronRight, Clock, AlertCircle, ArrowUp, ArrowDown } from 'lucide-react';
+import { formatMinutesToHoursMinutesShort } from '../../lib/timeUtils';
 import { attendanceService, AttendanceItem, MetaData } from '../../services/attendanceService';
 import { StatusBadge, AttendanceStatus } from '../ui/StatusBadge';
 import { AdminNav } from './AdminNav';
@@ -66,7 +67,7 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
     }
   };
 
-  const formatTime = (timeStr: string | null) => {
+  const formatTime = (timeStr: string | null | undefined) => {
     if (!timeStr) return '—';
     try {
       // Handle the strict format from API "10:47:36.4900887"
@@ -77,27 +78,7 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
     }
   };
 
-  const calculateWorkedHours = (arrival: string | null, leave: string | null) => {
-    if (!arrival || !leave) return '—';
-    try {
-      // Need a reference date since time string doesn't have it, but for duration it doesn't matter as long as it's same day
-      // Assuming strings are "HH:mm:ss..."
-      const datePrefix = "2000-01-01T";
-      const userTimeOffset = "Z"; // Treat as UTC for diff calculation to avoid timezone mess
-      // Or just parse hours/minutes manually
-      const [Ah, Am] = arrival.split(':').map(Number);
-      const [Lh, Lm] = leave.split(':').map(Number);
 
-      let minutes = (Lh * 60 + Lm) - (Ah * 60 + Am);
-      if (minutes < 0) minutes += 24 * 60; // Handle overnight if needed, though rare for daily attendance
-
-      const hours = Math.floor(minutes / 60);
-      const mins = minutes % 60;
-      return `${hours}s ${mins}d`;
-    } catch {
-      return '—';
-    }
-  };
 
   const getStatus = (record: AttendanceItem): AttendanceStatus => {
     if (record.isRest) return 'rest';
@@ -220,7 +201,6 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Giriş</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Çıxış</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">İşlənmiş saat</th>
-                    {/* Status removed or consolidated? Keeping 'isLate' flags visibility via badges if needed, or stick to visual indicators */}
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Yoxlama</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Əməliyyatlar</th>
                   </tr>
@@ -297,9 +277,23 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="text-sm text-gray-600 font-mono">
-                              {calculateWorkedHours(record.arrivalTime, record.leaveTime)}
-                            </span>
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm text-gray-600 font-mono">
+                                {formatMinutesToHoursMinutesShort(record.attendanceDurationMinutes)}
+                              </span>
+
+                              {record.overtimeMinutes !== 0 && (
+                                <div className="flex items-center gap-1">
+                                  {record.overtimeMinutes > 0 && <ArrowUp className="w-4 h-4 text-green-600" />}
+                                  {record.overtimeMinutes < 0 && <ArrowDown className="w-4 h-4 text-red-600" />}
+                                  <span className={`text-sm font-medium font-mono ${record.overtimeMinutes > 0 ? 'text-green-600' :
+                                    record.overtimeMinutes < 0 ? 'text-red-600' : 'text-gray-500'
+                                    }`}>
+                                    {formatMinutesToHoursMinutesShort(record.overtimeMinutes)}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <TooltipProvider>
@@ -398,14 +392,48 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                 </div>
 
                 <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="bg-gray-50 p-4 rounded-xl">
                       <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Tarix</p>
                       <p className="font-semibold">{formatDate(selectedRecord.date)}</p>
+
                     </div>
+
                     <div className="bg-gray-50 p-4 rounded-xl">
                       <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">İşlənmiş saat</p>
-                      <p className="font-semibold font-mono">{calculateWorkedHours(selectedRecord.arrivalTime, selectedRecord.leaveTime)}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold font-mono text-lg">{formatMinutesToHoursMinutesShort(selectedRecord.attendanceDurationMinutes)}</p>
+
+                        {selectedRecord.overtimeMinutes !== 0 && (
+                          <div className="flex items-center gap-1">
+                            {selectedRecord.overtimeMinutes > 0 && <ArrowUp className="w-4 h-4 text-green-600" />}
+                            {selectedRecord.overtimeMinutes < 0 && <ArrowDown className="w-4 h-4 text-red-600" />}
+                            <p className={`font-semibold font-mono ${selectedRecord.overtimeMinutes > 0 ? 'text-green-600' :
+                              selectedRecord.overtimeMinutes < 0 ? 'text-red-600' : 'text-gray-900'
+                              }`}>
+                              {formatMinutesToHoursMinutesShort(selectedRecord.overtimeMinutes)}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6 relative">
+                    <div className="bg-gray-50 p-4 rounded-xl">
+                      <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Başlama Vaxtı</p>
+
+                      <p className="text-xs text-black font-bold mt-1 flex items-center gap-1">
+                        {formatTime(selectedRecord.employee?.workStartTime)}
+                      </p>
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded-xl">
+                      <p className="text-sm text-gray-500 uppercase tracking-wide mb-1">Bitmə Vaxtı</p>
+
+                      <p className="text-sm text-black font-bold mt-1 flex items-center gap-1">
+                        {formatTime(selectedRecord.employee?.workEndTime)}
+                      </p>
                     </div>
                   </div>
 
@@ -460,6 +488,7 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                     </div>
 
                     {/* Leave */}
+
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 mb-2">
                         <div className="w-2 h-2 rounded-full bg-blue-500"></div>
