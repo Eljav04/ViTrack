@@ -3,7 +3,7 @@ import { useAppSelector } from '../store/hooks';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
-    allowedRoles?: ('Admin' | 'User')[];
+    allowedRoles?: ('Admin' | 'User' | 'Boss')[];
 }
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
@@ -22,7 +22,7 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     if (allowedRoles && !allowedRoles.includes(user.role)) {
         // Redirect to appropriate dashboard if role doesn't match
         // prevent infinite loops if they don't have access to anything
-        return <Navigate to={user.role === 'Admin' ? '/admin' : '/employee'} replace />;
+        return <Navigate to={(user.role === 'Admin' || user.role === 'Boss') ? '/admin' : '/employee'} replace />;
     }
 
     return <>{children}</>;

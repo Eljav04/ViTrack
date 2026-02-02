@@ -56,7 +56,7 @@ export function AdminNav({ onLogout }: { onLogout: () => void }) {
             >
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900">{user?.firstname} {user?.lastname}</p>
-                <p className="text-xs text-gray-600">{user?.role === 'Admin' ? 'Administrator' : 'User'}</p>
+                <p className="text-xs text-gray-600">{user?.role === 'Admin' ? 'Administrator' : user?.role === 'Boss' ? 'Direktor' : 'İşçi'}</p>
               </div>
               <UserAvatar
                 firstname={user?.firstname}

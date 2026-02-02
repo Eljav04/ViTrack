@@ -9,6 +9,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '../ui/tooltip';
 
 // Zod Schema
 const scheduleSchema = z.object({
@@ -22,6 +23,8 @@ type ScheduleFormValues = z.infer<typeof scheduleSchema>;
 export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
   const dispatch = useDispatch<AppDispatch>();
   const { items: schedules, loading } = useSelector((state: RootState) => state.workSchedules);
+  const { user: currentUser } = useSelector((state: RootState) => state.auth);
+  const isBoss = currentUser?.role === 'Boss';
 
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -166,13 +169,23 @@ export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button
-                        onClick={() => handleDelete(schedule.id)}
-                        className="p-2 hover:bg-red-50 rounded-lg text-red-600"
-                        title="Sil"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => !isBoss && handleDelete(schedule.id)}
+                              className={`p-2 rounded-lg transition-colors ${isBoss ? "opacity-50 cursor-not-allowed" : "hover:bg-red-50"}`}
+                            >
+                              <Trash2 className="w-4 h-4 text-red-600" />
+                            </button>
+                          </TooltipTrigger>
+                          {isBoss && (
+                            <TooltipContent>
+                              <p>Bu əməliyyat üçün administrator icazəsi lazımdır</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </div>
 
