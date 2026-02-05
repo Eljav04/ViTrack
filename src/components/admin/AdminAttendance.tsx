@@ -423,13 +423,13 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                     <div className="bg-gray-50 p-4 rounded-xl">
                       <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Başlama Vaxtı</p>
 
-                      <p className="text-xs text-black font-bold mt-1 flex items-center gap-1">
+                      <p className="text-sm text-black font-bold mt-1 flex items-center gap-1">
                         {formatTime(selectedRecord.employee?.workStartTime)}
                       </p>
                     </div>
 
                     <div className="bg-gray-50 p-4 rounded-xl">
-                      <p className="text-sm text-gray-500 uppercase tracking-wide mb-1">Bitmə Vaxtı</p>
+                      <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Bitmə Vaxtı</p>
 
                       <p className="text-sm text-black font-bold mt-1 flex items-center gap-1">
                         {formatTime(selectedRecord.employee?.workEndTime)}
