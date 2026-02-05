@@ -42,6 +42,15 @@ export const userService = {
         return response.data;
     },
 
+    getAllDetailedEmployees: async () => {
+        const response = await api.get<User[]>('/api/user/all-detailed-employees', {
+            params: {
+                IsDeleted: false
+            }
+        });
+        return response.data;
+    },
+
     getAll: async () => {
         const response = await api.get<User[]>('/api/user/all');
         return response.data;

@@ -17,6 +17,7 @@ import { AdminEmployees } from './components/admin/AdminEmployees';
 import { AdminSchedules } from './components/admin/AdminSchedules';
 import { AdminDepartments } from './components/admin/AdminDepartments';
 import { AdminProfile } from './components/admin/AdminProfile';
+import { AdminStatistics } from './components/admin/AdminStatistics';
 
 export type UserRole = 'employee' | 'admin' | 'boss' | null;
 
@@ -101,6 +102,11 @@ export default function App() {
           <Route path="/admin/departments" element={
             <ProtectedRoute allowedRoles={['Admin', 'Boss']}>
               <AdminDepartments onLogout={handleLogout} />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/statistics" element={
+            <ProtectedRoute allowedRoles={['Admin', 'Boss']}>
+              <AdminStatistics onLogout={handleLogout} />
             </ProtectedRoute>
           } />
           <Route path="/admin/profile" element={
