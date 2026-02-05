@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ClipboardList, Users, Calendar, Building2, User, Menu, X } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, Users, Calendar, Building2, User, Menu, X, BarChart3 } from 'lucide-react';
 import { useAppSelector } from '../../store/hooks';
 import { UserAvatar } from '../ui/UserAvatar';
 
@@ -13,6 +13,7 @@ export function AdminNav({ onLogout }: { onLogout: () => void }) {
 
   const navItems = [
     { path: '/admin', label: 'İdarə Paneli', icon: LayoutDashboard },
+    { path: '/admin/statistics', label: 'Statistika', icon: BarChart3 },
     { path: '/admin/attendance', label: 'Davamiyyət', icon: ClipboardList },
     { path: '/admin/employees', label: 'İşçilər', icon: Users },
     { path: '/admin/departments', label: 'Şöbələr', icon: Building2 },
