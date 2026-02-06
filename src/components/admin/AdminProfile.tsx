@@ -1,14 +1,36 @@
-import { User as UserIcon, Mail, Shield, LogOut as LogOutIcon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { User as UserIcon, Mail, Shield, LogOut as LogOutIcon, Calendar, Clock, AlertCircle, Coffee } from 'lucide-react';
 import { useAppSelector } from '../../store/hooks';
 import { AdminNav } from './AdminNav';
 import { Button } from '../ui/button';
 import { UserAvatar } from '../ui/UserAvatar';
+import { statisticsService, StatisticsResponse } from '../../services/statisticsService';
+import { toast } from 'sonner';
 
 
 export function AdminProfile({ onLogout }: { onLogout: () => void }) {
   const { user } = useAppSelector((state) => state.auth);
+  const [stats, setStats] = useState<StatisticsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await statisticsService.getOverallMonthlyStats();
+        setStats(data);
+      } catch (error) {
+        console.error('Monthly stats fetch failed', error);
+        toast.error('Aylıq statistikanı yükləmək mümkün olmadı');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
 
   if (!user) return null;
+
+  const round = (num: number) => Math.round(num * 10) / 10;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -18,8 +40,8 @@ export function AdminProfile({ onLogout }: { onLogout: () => void }) {
         <h2 className="text-2xl font-semibold text-gray-900 mb-6">Profil</h2>
 
         <div className="space-y-4">
-          {/* Profile Photo & Basic Info */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+
             <div className="flex items-center gap-4 mb-6">
               <UserAvatar
                 firstname={user.firstname}
@@ -96,29 +118,49 @@ export function AdminProfile({ onLogout }: { onLogout: () => void }) {
 
           {/* Statistics */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="font-semibold text-gray-900 mb-4">Sistem Statistikası</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">Aylıq statistika</h3>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-blue-50 rounded-lg p-4">
-                <p className="text-2xl font-semibold text-blue-600">48</p>
-                <p className="text-xs text-blue-700">Cəmi İşçilər</p>
+            {loading ? (
+              <div className="grid grid-cols-2 gap-4 animate-pulse">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="h-20 bg-gray-100 rounded-lg"></div>
+                ))}
               </div>
+            ) : stats ? (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <p className="text-2xl font-semibold text-blue-600">{stats.wholeDays}</p>
+                  <p className="text-xs text-blue-700">Ümumi günlər</p>
+                </div>
 
-              <div className="bg-green-50 rounded-lg p-4">
-                <p className="text-2xl font-semibold text-green-600">5</p>
-                <p className="text-xs text-green-700">Şöbələr</p>
-              </div>
+                <div className="bg-green-50 rounded-lg p-4">
+                  <p className="text-2xl font-semibold text-green-600">{stats.restDays}</p>
+                  <p className="text-xs text-green-700">İstirahət günləri sayı</p>
+                </div>
 
-              <div className="bg-purple-50 rounded-lg p-4">
-                <p className="text-2xl font-semibold text-purple-600">4</p>
-                <p className="text-xs text-purple-700">İş Cədvəlləri</p>
-              </div>
+                <div className="bg-red-50 rounded-lg p-4">
+                  <p className="text-2xl font-semibold text-red-600">{stats.absentDays}</p>
+                  <p className="text-xs text-red-700">Qayıb günləri sayı</p>
+                </div>
 
-              <div className="bg-orange-50 rounded-lg p-4">
-                <p className="text-2xl font-semibold text-orange-600">92%</p>
-                <p className="text-xs text-orange-700">Davamiyyət Faizi</p>
+                <div className="bg-orange-50 rounded-lg p-4">
+                  <p className="text-2xl font-semibold text-orange-600">{stats.lateCount}</p>
+                  <p className="text-xs text-orange-700">Gecikmə sayı</p>
+                </div>
+
+                <div className="bg-indigo-50 rounded-lg p-4">
+                  <p className="text-2xl font-semibold text-indigo-600">{round(stats.workHours)}</p>
+                  <p className="text-xs text-indigo-700">İşlənilən saatlar</p>
+                </div>
+
+                <div className="bg-teal-50 rounded-lg p-4">
+                  <p className="text-2xl font-semibold text-teal-600">{round(stats.overtimeHours)}</p>
+                  <p className="text-xs text-teal-700">Əlavə saatlar</p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <p className="text-center text-gray-500 py-4">Məlumat yüklənmədi</p>
+            )}
           </div>
 
           {/* Logout Button */}

@@ -67,6 +67,11 @@ export const statisticsService = {
     getTodayOverall: async () => {
         const response = await api.get<TodayOverallStatisticsResponse>('/api/statistics/attendance/get-today-overall');
         return response.data;
+    },
+
+    getOverallMonthlyStats: async () => {
+        const response = await api.get<StatisticsResponse>('/api/statistics/attendance/get-overall-monthly-stats');
+        return response.data;
     }
 };
 
