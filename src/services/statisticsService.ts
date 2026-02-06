@@ -22,5 +22,15 @@ export const statisticsService = {
             }
         });
         return response.data;
+    },
+
+    getMyStats: async (start: string, end: string) => {
+        const response = await api.get<StatisticsResponse>('/api/statistics/attendace/get-my-stats', {
+            params: {
+                start,
+                end
+            }
+        });
+        return response.data;
     }
 };
