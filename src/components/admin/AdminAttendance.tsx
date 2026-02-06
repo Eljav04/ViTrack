@@ -1,5 +1,5 @@
 import { useState, useEffect, Fragment } from 'react';
-import { Search, Camera, MapPin, MessageSquare, X, ChevronLeft, ChevronRight, Clock, AlertCircle, ArrowUp, ArrowDown } from 'lucide-react';
+import { Search, Camera, MapPin, MessageSquare, X, ChevronLeft, ChevronRight, Clock, AlertCircle, ArrowUp, ArrowDown, Pencil } from 'lucide-react';
 import { formatMinutesToHoursMinutesShort } from '../../lib/timeUtils';
 import { attendanceService, AttendanceItem, MetaData } from '../../services/attendanceService';
 import { StatusBadge, AttendanceStatus } from '../ui/StatusBadge';
@@ -27,13 +27,19 @@ import { getImageUrl } from '../../lib/imageUtils';
 import { UserAvatar } from '../ui/UserAvatar';
 
 
+import { EditAttendanceModal } from './EditAttendanceModal';
+import { useAppSelector } from '../../store/hooks';
+import { AttendanceUpdateDTO } from '../../services/attendanceService';
+
 export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
+  const { user } = useAppSelector((state) => state.auth);
   const [data, setData] = useState<AttendanceItem[]>([]);
   const [metaData, setMetaData] = useState<MetaData | null>(null);
   const [loading, setLoading] = useState(false);
   const [pageSize, setPageSize] = useState(20);
   const [pageNumber, setPageNumber] = useState(1);
   const [selectedRecord, setSelectedRecord] = useState<AttendanceItem | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -386,9 +392,35 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                     </h3>
                     <p className="text-gray-500 text-sm">{selectedRecord.employee?.departmentName || 'N/A'}</p>
                   </div>
-                  <button onClick={() => setSelectedRecord(null)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                    <X className="w-5 h-5 text-gray-500" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span tabIndex={0} className="inline-flex"> {/* Span wrapper for disabled button tooltip trigger */}
+                            <button
+                              onClick={() => user?.role === 'Admin' && setIsEditModalOpen(true)}
+                              disabled={user?.role !== 'Admin'} // Disable if not Admin (e.g. Boss)
+                              className={`p-2 rounded-full transition-colors ${user?.role === 'Admin'
+                                  ? 'hover:bg-gray-100 text-blue-600'
+                                  : 'text-gray-300 cursor-not-allowed'
+                                }`}
+                            >
+                              <Pencil className="w-5 h-5" />
+                            </button>
+                          </span>
+                        </TooltipTrigger>
+                        {user?.role !== 'Admin' && (
+                          <TooltipContent>
+                            <p>Bu əməliyyat üçün admin statusu tələb olunur</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+
+                    <button onClick={() => setSelectedRecord(null)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                      <X className="w-5 h-5 text-gray-500" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-6">
@@ -620,6 +652,27 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
           </div >
         )
       }
+
+      {selectedRecord && (
+        <EditAttendanceModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          record={selectedRecord}
+          onUpdate={async (dto: AttendanceUpdateDTO) => {
+            try {
+              const updatedRecord = await attendanceService.update(dto);
+              toast.success('Davamiyyət məlumatları yeniləndi');
+              // Update local list data
+              setData(prev => prev.map(item => item.id === updatedRecord.id ? updatedRecord : item));
+              // Update selected record view
+              setSelectedRecord(updatedRecord);
+            } catch (error) {
+              console.error(error);
+              toast.error('Xəta baş verdi');
+            }
+          }}
+        />
+      )}
     </div >
   );
 }
