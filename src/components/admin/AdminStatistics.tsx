@@ -196,9 +196,6 @@ function StatisticsDetail({ employee, onBack, onLogout }: StatisticsDetailProps)
         return new Date().toISOString().split('T')[0]; // Today
     });
 
-    useEffect(() => {
-        fetchStatistics();
-    }, []); // Initial load
 
     const fetchStatistics = async () => {
         setLoading(true);

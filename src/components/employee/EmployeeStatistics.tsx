@@ -18,9 +18,6 @@ export function EmployeeStatistics({ onLogout }: { onLogout: () => void }) {
         return new Date().toISOString().split('T')[0]; // Today
     });
 
-    useEffect(() => {
-        fetchStatistics();
-    }, []); // Initial load
 
     const fetchStatistics = async () => {
         setLoading(true);

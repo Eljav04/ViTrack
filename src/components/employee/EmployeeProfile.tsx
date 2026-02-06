@@ -140,12 +140,12 @@ export function EmployeeProfile({ onLogout }: { onLogout: () => void }) {
 
                   <div className="bg-emerald-50 rounded-lg p-4">
                     <p className="text-xl font-bold text-emerald-900">{stats.restDays}</p>
-                    <p className="text-xs text-emerald-700">İstirahət günləri sayı</p>
+                    <p className="text-xs text-emerald-700">İstirahət günlər</p>
                   </div>
 
                   <div className="bg-red-50 rounded-lg p-4">
                     <p className="text-xl font-bold text-red-900">{stats.absentDays}</p>
-                    <p className="text-xs text-red-700">Qayıb günləri sayı</p>
+                    <p className="text-xs text-red-700">Qayıb günlər</p>
                   </div>
 
                   <div className="bg-orange-50 rounded-lg p-4">
