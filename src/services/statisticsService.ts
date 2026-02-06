@@ -72,6 +72,11 @@ export const statisticsService = {
     getOverallMonthlyStats: async () => {
         const response = await api.get<StatisticsResponse>('/api/statistics/attendance/get-overall-monthly-stats');
         return response.data;
+    },
+
+    getMyOverallMonthlyStats: async () => {
+        const response = await api.get<StatisticsResponse>('/api/statistics/attendance/get-my-overall-monthly-stats');
+        return response.data;
     }
 };
 
