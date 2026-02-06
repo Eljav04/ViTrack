@@ -87,6 +87,7 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
 
 
   const getStatus = (record: AttendanceItem): AttendanceStatus => {
+    if (record.isAbsent) return 'absent';
     if (record.isRest) return 'rest';
     if (record.isLate && record.isEarlyLeave) return 'late-and-early';
     if (record.isLate) return 'late';
@@ -257,7 +258,9 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                               <span className="text-sm font-medium text-gray-900">
                                 {formatTime(record.arrivalTime)}
                               </span>
-                              {record.isRest ? (
+                              {record.isAbsent ? (
+                                <StatusBadge status="absent" size="sm" />
+                              ) : record.isRest ? (
                                 <StatusBadge status="rest" size="sm" />
                               ) : record.isLate ? (
                                 <StatusBadge status="late" size="sm" />
@@ -271,7 +274,9 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                               <span className="text-sm font-medium text-gray-900">
                                 {formatTime(record.leaveTime)}
                               </span>
-                              {!record.leaveTime && !record.isRest ? (
+                              {record.isAbsent ? (
+                                <span className="text-xs text-gray-400">—</span>
+                              ) : !record.leaveTime && !record.isRest ? (
                                 <StatusBadge status="waiting" size="sm" />
                               ) : record.isRest ? (
                                 <span className="text-xs text-gray-400">—</span>
@@ -401,8 +406,8 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                               onClick={() => user?.role === 'Admin' && setIsEditModalOpen(true)}
                               disabled={user?.role !== 'Admin'} // Disable if not Admin (e.g. Boss)
                               className={`p-2 rounded-full transition-colors ${user?.role === 'Admin'
-                                  ? 'hover:bg-gray-100 text-blue-600'
-                                  : 'text-gray-300 cursor-not-allowed'
+                                ? 'hover:bg-gray-100 text-blue-600'
+                                : 'text-gray-300 cursor-not-allowed'
                                 }`}
                             >
                               <Pencil className="w-5 h-5" />
@@ -479,9 +484,11 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                         <h4 className="font-semibold text-gray-900">Giriş</h4>
                       </div>
                       <div className="pl-4 border-l-2 border-green-100">
-                        <p className="text-2xl font-bold text-gray-900 mb-1">{formatTime(selectedRecord.arrivalTime)}</p>
+                        <p className="text-2xl font-bold text-gray-900 mb-1">{selectedRecord.isAbsent ? '—' : formatTime(selectedRecord.arrivalTime)}</p>
 
-                        {selectedRecord.isLate ? (
+                        {selectedRecord.isAbsent ? (
+                          <StatusBadge status="absent" size="sm" />
+                        ) : selectedRecord.isLate ? (
                           <StatusBadge status="late" size="sm" />
                         ) : (
                           <StatusBadge status="on-time" size="sm" />
@@ -527,8 +534,10 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                         <h4 className="font-semibold text-gray-900">Çıxış</h4>
                       </div>
                       <div className="pl-4 border-l-2 border-blue-100">
-                        <p className="text-2xl font-bold text-gray-900 mb-1">{formatTime(selectedRecord.leaveTime)}</p>
-                        {!selectedRecord.leaveTime ? (
+                        <p className="text-2xl font-bold text-gray-900 mb-1">{selectedRecord.isAbsent ? '—' : formatTime(selectedRecord.leaveTime)}</p>
+                        {selectedRecord.isAbsent ? (
+                          <span className="text-xs text-gray-400">—</span>
+                        ) : !selectedRecord.leaveTime ? (
                           <StatusBadge status="waiting" size="sm" />
                         ) : selectedRecord.isEarlyLeave ? (
                           <StatusBadge status="early-leave" size="sm" />

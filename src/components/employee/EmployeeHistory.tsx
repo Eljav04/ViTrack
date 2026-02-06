@@ -44,6 +44,7 @@ export function EmployeeHistory() {
 
   const getRecordStatus = (rec: AttendanceItem): AttendanceStatus => {
     if (!rec) return 'waiting';
+    if (rec.isAbsent) return 'absent';
     if (rec.isRest) return 'rest';
     if (rec.isLate && rec.isEarlyLeave) return 'late-and-early';
     if (rec.isLate) return 'late';
@@ -184,7 +185,11 @@ export function EmployeeHistory() {
                         <div>
                           <p className="font-medium text-gray-900">{formatDate(record.date)}</p>
                           <p className="text-sm text-gray-600">
-                            {formatTime(record.arrivalTime)} - {formatTime(record.leaveTime) === '—' ? 'Davam edir' : formatTime(record.leaveTime)}
+                            {record.isAbsent ? (
+                              <span className="text-red-600 font-medium">İşə gəlməyib</span>
+                            ) : (
+                              <>{formatTime(record.arrivalTime)} - {formatTime(record.leaveTime) === '—' ? 'Davam edir' : formatTime(record.leaveTime)}</>
+                            )}
                           </p>
                         </div>
                       </div>
@@ -321,13 +326,13 @@ export function EmployeeHistory() {
                 <div>
                   <p className="text-xs text-gray-600 mb-1">Giriş</p>
                   <p className="text-lg font-semibold text-gray-900">
-                    {formatTime(selectedRecord.arrivalTime)}
+                    {selectedRecord.isAbsent ? '—' : formatTime(selectedRecord.arrivalTime)}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-600 mb-1">Çıxış</p>
                   <p className="text-lg font-semibold text-gray-900">
-                    {formatTime(selectedRecord.leaveTime)}
+                    {selectedRecord.isAbsent ? '—' : formatTime(selectedRecord.leaveTime)}
                   </p>
                 </div>
               </div>
