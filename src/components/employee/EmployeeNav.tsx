@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, User, Menu, X } from 'lucide-react';
+import { Home, Calendar, User, Menu, X, BarChart3 } from 'lucide-react';
 import { useAppSelector } from '../../store/hooks';
 import { UserAvatar } from '../ui/UserAvatar';
 
@@ -14,6 +14,7 @@ export function EmployeeNav({ onLogout }: { onLogout: () => void }) {
   const navItems = [
     { path: '/employee', label: 'Ana Səhifə', icon: Home },
     { path: '/employee/history', label: 'Tarixçə', icon: Calendar },
+    { path: '/employee/statistics', label: 'Statistika', icon: BarChart3 },
     { path: '/employee/profile', label: 'Profil', icon: User },
   ];
 

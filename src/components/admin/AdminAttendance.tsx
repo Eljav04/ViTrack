@@ -1,5 +1,5 @@
 import { useState, useEffect, Fragment } from 'react';
-import { Search, Camera, MapPin, MessageSquare, X, ChevronLeft, ChevronRight, Clock, AlertCircle, ArrowUp, ArrowDown } from 'lucide-react';
+import { Search, Camera, MapPin, MessageSquare, X, ChevronLeft, ChevronRight, Clock, AlertCircle, ArrowUp, ArrowDown, Pencil } from 'lucide-react';
 import { formatMinutesToHoursMinutesShort } from '../../lib/timeUtils';
 import { attendanceService, AttendanceItem, MetaData } from '../../services/attendanceService';
 import { StatusBadge, AttendanceStatus } from '../ui/StatusBadge';
@@ -27,13 +27,19 @@ import { getImageUrl } from '../../lib/imageUtils';
 import { UserAvatar } from '../ui/UserAvatar';
 
 
+import { EditAttendanceModal } from './EditAttendanceModal';
+import { useAppSelector } from '../../store/hooks';
+import { AttendanceUpdateDTO } from '../../services/attendanceService';
+
 export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
+  const { user } = useAppSelector((state) => state.auth);
   const [data, setData] = useState<AttendanceItem[]>([]);
   const [metaData, setMetaData] = useState<MetaData | null>(null);
   const [loading, setLoading] = useState(false);
   const [pageSize, setPageSize] = useState(20);
   const [pageNumber, setPageNumber] = useState(1);
   const [selectedRecord, setSelectedRecord] = useState<AttendanceItem | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -81,6 +87,7 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
 
 
   const getStatus = (record: AttendanceItem): AttendanceStatus => {
+    if (record.isAbsent) return 'absent';
     if (record.isRest) return 'rest';
     if (record.isLate && record.isEarlyLeave) return 'late-and-early';
     if (record.isLate) return 'late';
@@ -157,7 +164,7 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900">Davamiyyət Qeydləri</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">Davamiyyət qeydləri</h2>
             <p className="text-sm text-gray-600 mt-1">
               {metaData?.totalCount || 0} qeyd tapıldı
             </p>
@@ -251,7 +258,9 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                               <span className="text-sm font-medium text-gray-900">
                                 {formatTime(record.arrivalTime)}
                               </span>
-                              {record.isRest ? (
+                              {record.isAbsent ? (
+                                <StatusBadge status="absent" size="sm" />
+                              ) : record.isRest ? (
                                 <StatusBadge status="rest" size="sm" />
                               ) : record.isLate ? (
                                 <StatusBadge status="late" size="sm" />
@@ -265,7 +274,9 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                               <span className="text-sm font-medium text-gray-900">
                                 {formatTime(record.leaveTime)}
                               </span>
-                              {!record.leaveTime && !record.isRest ? (
+                              {record.isAbsent ? (
+                                <span className="text-xs text-gray-400">—</span>
+                              ) : !record.leaveTime && !record.isRest ? (
                                 <StatusBadge status="waiting" size="sm" />
                               ) : record.isRest ? (
                                 <span className="text-xs text-gray-400">—</span>
@@ -386,9 +397,35 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                     </h3>
                     <p className="text-gray-500 text-sm">{selectedRecord.employee?.departmentName || 'N/A'}</p>
                   </div>
-                  <button onClick={() => setSelectedRecord(null)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                    <X className="w-5 h-5 text-gray-500" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span tabIndex={0} className="inline-flex"> {/* Span wrapper for disabled button tooltip trigger */}
+                            <button
+                              onClick={() => user?.role === 'Admin' && setIsEditModalOpen(true)}
+                              disabled={user?.role !== 'Admin'} // Disable if not Admin (e.g. Boss)
+                              className={`p-2 rounded-full transition-colors ${user?.role === 'Admin'
+                                ? 'hover:bg-gray-100 text-blue-600'
+                                : 'text-gray-300 cursor-not-allowed'
+                                }`}
+                            >
+                              <Pencil className="w-5 h-5" />
+                            </button>
+                          </span>
+                        </TooltipTrigger>
+                        {user?.role !== 'Admin' && (
+                          <TooltipContent>
+                            <p>Bu əməliyyat üçün admin statusu tələb olunur</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+
+                    <button onClick={() => setSelectedRecord(null)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                      <X className="w-5 h-5 text-gray-500" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-6">
@@ -447,9 +484,11 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                         <h4 className="font-semibold text-gray-900">Giriş</h4>
                       </div>
                       <div className="pl-4 border-l-2 border-green-100">
-                        <p className="text-2xl font-bold text-gray-900 mb-1">{formatTime(selectedRecord.arrivalTime)}</p>
+                        <p className="text-2xl font-bold text-gray-900 mb-1">{selectedRecord.isAbsent ? '—' : formatTime(selectedRecord.arrivalTime)}</p>
 
-                        {selectedRecord.isLate ? (
+                        {selectedRecord.isAbsent ? (
+                          <StatusBadge status="absent" size="sm" />
+                        ) : selectedRecord.isLate ? (
                           <StatusBadge status="late" size="sm" />
                         ) : (
                           <StatusBadge status="on-time" size="sm" />
@@ -495,8 +534,10 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
                         <h4 className="font-semibold text-gray-900">Çıxış</h4>
                       </div>
                       <div className="pl-4 border-l-2 border-blue-100">
-                        <p className="text-2xl font-bold text-gray-900 mb-1">{formatTime(selectedRecord.leaveTime)}</p>
-                        {!selectedRecord.leaveTime ? (
+                        <p className="text-2xl font-bold text-gray-900 mb-1">{selectedRecord.isAbsent ? '—' : formatTime(selectedRecord.leaveTime)}</p>
+                        {selectedRecord.isAbsent ? (
+                          <span className="text-xs text-gray-400">—</span>
+                        ) : !selectedRecord.leaveTime ? (
                           <StatusBadge status="waiting" size="sm" />
                         ) : selectedRecord.isEarlyLeave ? (
                           <StatusBadge status="early-leave" size="sm" />
@@ -620,6 +661,27 @@ export function AdminAttendance({ onLogout }: { onLogout: () => void }) {
           </div >
         )
       }
+
+      {selectedRecord && (
+        <EditAttendanceModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          record={selectedRecord}
+          onUpdate={async (dto: AttendanceUpdateDTO) => {
+            try {
+              const updatedRecord = await attendanceService.update(dto);
+              toast.success('Davamiyyət məlumatları yeniləndi');
+              // Update local list data
+              setData(prev => prev.map(item => item.id === updatedRecord.id ? updatedRecord : item));
+              // Update selected record view
+              setSelectedRecord(updatedRecord);
+            } catch (error) {
+              console.error(error);
+              toast.error('Xəta baş verdi');
+            }
+          }}
+        />
+      )}
     </div >
   );
 }

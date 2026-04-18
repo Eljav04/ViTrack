@@ -145,5 +145,20 @@ export const attendanceService = {
         // Based on [FromForm] DayOffRequest request in snippet.
         const response = await api.post('/api/attendance-record/set-day-off', formData);
         return response.data;
+    },
+
+    update: async (data: AttendanceUpdateDTO) => {
+        const response = await api.put('/api/attendance-record/update', data);
+        return response.data;
     }
 };
+
+export interface AttendanceUpdateDTO {
+    id: number;
+    arrivalTime?: string | null;
+    leaveTime?: string | null;
+    isLate?: boolean;
+    isEarlyLeave?: boolean;
+    isAbsent?: boolean | null;
+    isRest?: boolean | null;
+}

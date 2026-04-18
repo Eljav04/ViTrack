@@ -42,7 +42,7 @@ export function StatusBadge({ status, size = 'md' }: StatusBadgeProps) {
     absent: {
       bg: 'bg-red-50',
       text: 'text-red-700',
-      label: 'İşə gəlmədi',
+      label: 'İşə gəlməyib',
       icon: XCircle,
     },
     rest: {

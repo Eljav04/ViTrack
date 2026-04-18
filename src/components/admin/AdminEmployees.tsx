@@ -236,7 +236,7 @@ export function AdminEmployees({ onLogout }: { onLogout: () => void }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900">İşçilərin İdarə Edilməsi</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">İşçilərin idarə edilməsi</h2>
             <p className="text-sm text-gray-600 mt-1">{filteredUsers.length} işçi</p>
           </div>
           <Button variant="primary" onClick={handleAdd}>

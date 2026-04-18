@@ -121,7 +121,7 @@ export function AdminSchedules({ onLogout }: { onLogout: () => void }) {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900">İş Cədvəllərinin İdarə Edilməsi</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">İş cədvəllərinin idarə edilməsi</h2>
             <p className="text-sm text-gray-600 mt-1">{schedules.length} cədvəl konfiqurasiya edilib</p>
           </div>
           <Button variant="primary" onClick={handleAdd}>

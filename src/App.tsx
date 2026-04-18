@@ -8,6 +8,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { EmployeeDashboard } from './components/employee/EmployeeDashboard';
 import { EmployeeHistory } from './components/employee/EmployeeHistory';
 import { EmployeeProfile } from './components/employee/EmployeeProfile';
+import { EmployeeStatistics } from './components/employee/EmployeeStatistics';
 import { CheckInOut } from './components/employee/CheckInOut';
 import { DayOffPage } from './components/employee/DayOffPage';
 
@@ -70,6 +71,11 @@ export default function App() {
           <Route path="/employee/history" element={
             <ProtectedRoute allowedRoles={['User']}>
               <EmployeeHistory />
+            </ProtectedRoute>
+          } />
+          <Route path="/employee/statistics" element={
+            <ProtectedRoute allowedRoles={['User']}>
+              <EmployeeStatistics onLogout={handleLogout} />
             </ProtectedRoute>
           } />
           <Route path="/employee/profile" element={
